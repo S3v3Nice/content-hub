@@ -1,0 +1,10 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./resources/js/*"],
+    },
+    "noImplicitAny": false,
+    "allowJs": true
+  },
+}

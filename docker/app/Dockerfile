@@ -12,8 +12,6 @@ RUN \
       unzip \
       npm  \
       git && \
-    npm install -g  \
-      yarn && \
     pecl config-set php_ini "${PHP_INI_DIR}/php.ini" && \
     docker-php-ext-install  \
       pdo_mysql \
@@ -32,9 +30,12 @@ RUN curl -sS https://getcomposer.org/installer | php -- \
     --filename=composer \
     --install-dir=/usr/local/bin
 
-# Change the uid and gid of the www-data user to default values
-RUN usermod  --uid 1000 www-data
-RUN groupmod --gid 1000 www-data
+# Set the uid, gid and home directory of the www-data user to default values
+RUN usermod  --uid 1000 www-data && \
+    groupmod --gid 1000 www-data && \
+    usermod -d /home/www-data www-data && \
+    mkdir /home/www-data && \
+    chown -R www-data:www-data /home/www-data
 
 USER www-data
 WORKDIR /var/www

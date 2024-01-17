@@ -59,4 +59,4 @@ services:
         volumes:
             - ./:/var/www
         working_dir: /var/www
-        command: sh -c 'npm i && if [ "${APP_DEBUG}" = "true" ]; then npm run dev; else npm run build && tail -f /dev/null; fi'
+        command: sh -c 'if [ "${APP_DEBUG}" = "true" ]; then npm run dev; else npm run build && tail -f /dev/null; fi'

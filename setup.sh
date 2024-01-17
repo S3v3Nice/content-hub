@@ -5,10 +5,10 @@ echo "Создаем .env на основе .env.example..."
 docker compose run --rm --no-deps app cp .env.example .env
 
 echo "Устанавливаем PHP зависимости..."
-docker compose run --rm --no-deps app composer update
+docker compose run --rm --no-deps app composer install
 
-echo "Устанавливаем Node.js зависимости..."
-docker compose run --rm --no-deps app yarn install
+echo "Устанавливаем JS зависимости..."
+docker compose run --rm --no-deps app npm install
 
 echo "Генерируем ключ приложения..."
 docker compose run --rm --no-deps app php artisan key:generate

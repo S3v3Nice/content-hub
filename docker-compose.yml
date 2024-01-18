@@ -30,7 +30,9 @@ services:
 
     mysql:
         container_name: content-hub_mysql
-        image: mysql:8.0
+        build:
+            context: .
+            dockerfile: docker/mysql/Dockerfile
         ports:
             - "${DB_PORT}:3306"
         restart: unless-stopped

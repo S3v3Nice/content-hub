@@ -1,6 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer tailwind {
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+}
 
 :root {
     background-color: var(--surface-ground);
@@ -8,6 +10,10 @@
 
 body {
     margin: 0;
+}
+
+*:focus {
+    box-shadow: none !important;
 }
 
 .surface-ground {

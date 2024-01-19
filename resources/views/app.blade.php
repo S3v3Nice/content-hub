@@ -7,8 +7,6 @@
 
     <title>{{ config('app.name') }}</title>
 
-    <link id="theme-link" rel="stylesheet" href="{{ asset('/themes/light/theme.css') }}">
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 

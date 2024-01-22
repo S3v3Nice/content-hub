@@ -1,5 +1,11 @@
 <script setup>
+import useThemeManager from '@/theme-manager'
+import {onMounted} from "vue";
 
+onMounted(() => {
+  const themeManager = useThemeManager()
+  themeManager.loadTheme()
+})
 </script>
 
 <template>

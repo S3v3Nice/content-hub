@@ -2,11 +2,16 @@ class ThemeManager {
     private static readonly lightTheme = 'light'
     private static readonly darkTheme = 'dark'
     private static readonly localStorageThemeKey = 'theme'
+    private static readonly themeLinkElementId = 'theme-link'
 
     private currentTheme = ThemeManager.lightTheme
 
-    constructor() {
-        this.loadThemeFromLocalStorage()
+    public loadTheme() {
+        const theme = localStorage.getItem(ThemeManager.localStorageThemeKey)
+
+        if (theme != null && theme !== this.currentTheme) {
+            this.changeTheme(theme)
+        }
     }
 
     public toggleTheme() {
@@ -20,23 +25,10 @@ class ThemeManager {
         return this.currentTheme === ThemeManager.lightTheme
     }
 
-    public isDark() {
-        return this.currentTheme === ThemeManager.darkTheme
-    }
-
-    private loadThemeFromLocalStorage() {
-        const theme = localStorage.getItem(ThemeManager.localStorageThemeKey)
-
-        if (theme != null && theme !== this.currentTheme) {
-            this.changeTheme(theme)
-        }
-    }
-
     private changeTheme(newTheme: string) {
-        const themeLinkElementId = 'theme-link'
 
         if (this.currentTheme !== newTheme) {
-            const linkElement = document.getElementById(themeLinkElementId)
+            const linkElement = document.getElementById(ThemeManager.themeLinkElementId)
 
             if (linkElement === null) {
                 return
@@ -45,12 +37,12 @@ class ThemeManager {
             const newThemeUrl = linkElement.getAttribute('href')!.replace(this.currentTheme, newTheme)
 
             const cloneLinkElement = document.createElement('link')
-            cloneLinkElement.setAttribute('id', themeLinkElementId + '-clone')
+            cloneLinkElement.setAttribute('id', ThemeManager.themeLinkElementId + '-clone')
             cloneLinkElement.setAttribute('rel', 'stylesheet')
             cloneLinkElement.setAttribute('href', newThemeUrl)
             cloneLinkElement.addEventListener('load', () => {
                 linkElement?.remove()
-                cloneLinkElement.setAttribute('id', themeLinkElementId);
+                cloneLinkElement.setAttribute('id', ThemeManager.themeLinkElementId);
                 this.currentTheme = newTheme
             })
 

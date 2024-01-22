@@ -7,24 +7,36 @@ import Button from "primevue/button"
 import Dialog from "primevue/dialog"
 import LoginForm from "@/components/auth/LoginForm.vue";
 import RegisterForm from "@/components/auth/RegisterForm.vue";
+import {useRouter} from "vue-router";
+import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm.vue";
 
+const router = useRouter()
 const authStore = useAuthStore()
 const themeManager = ref(useThemeManager())
 const isLightTheme = computed(() => themeManager.value.isLight())
 const isLoginDialogVisible = ref(false)
+const isForgotPasswordDialogVisible = ref(false)
 const isRegisterDialogVisible = ref(false)
 
 function logout() {
   axios.post('/logout').then(() => {
-    authStore.reset()
+    router.go(0)
   })
 }
 
 function setLoginDialogVisible(isVisible: boolean) {
   if (isVisible) {
     isRegisterDialogVisible.value = false
+    isForgotPasswordDialogVisible.value = false
   }
   isLoginDialogVisible.value = isVisible
+}
+
+function setForgotPasswordDialogVisible(isVisible: boolean) {
+  if (isVisible) {
+    isLoginDialogVisible.value = false
+  }
+  isForgotPasswordDialogVisible.value = isVisible
 }
 
 function setRegisterDialogVisible(isVisible: boolean) {
@@ -33,7 +45,6 @@ function setRegisterDialogVisible(isVisible: boolean) {
   }
   isRegisterDialogVisible.value = isVisible
 }
-
 </script>
 
 <template>
@@ -43,7 +54,8 @@ function setRegisterDialogVisible(isVisible: boolean) {
         <img v-if="isLightTheme" src="/images/logo.svg" alt="Logo" style="height: 100%">
         <img v-else src="/images/logo-dark.svg" alt="Logo" style="height: 100%">
       </RouterLink>
-      <Button label="Войти" @click="setLoginDialogVisible(true)"/>
+      <Button v-if="!authStore.isAuthenticated" label="Войти" @click="setLoginDialogVisible(true)"/>
+      <Button v-else label="Выйти" @click="logout"/>
     </div>
   </div>
 
@@ -54,8 +66,31 @@ function setRegisterDialogVisible(isVisible: boolean) {
       :modal="true"
       :draggable="false"
       @update:visible="setLoginDialogVisible"
+      style="width: 30rem;"
   >
-    <LoginForm @switch-to-register="setRegisterDialogVisible(true)"></LoginForm>
+    <LoginForm
+        @switch-to-forgot-password="setForgotPasswordDialogVisible(true)"
+        @switch-to-register="setRegisterDialogVisible(true)"
+    />
+  </Dialog>
+
+  <Dialog
+      header="Сброс пароля"
+      position="top"
+      :visible="isForgotPasswordDialogVisible"
+      :modal="true"
+      :draggable="false"
+      @update:visible="setForgotPasswordDialogVisible"
+      style="width: 30rem;"
+  >
+    <template #header>
+      <div class="inline-flex items-center">
+        <Button icon="fa-solid fa-arrow-left" aria-label="Назад" class="p-dialog-header-icon"
+                @click="setLoginDialogVisible(true)"/>
+        <span class="p-dialog-title">Сброс пароля</span>
+      </div>
+    </template>
+    <ForgotPasswordForm/>
   </Dialog>
 
   <Dialog
@@ -65,8 +100,9 @@ function setRegisterDialogVisible(isVisible: boolean) {
       :modal="true"
       :draggable="false"
       @update:visible="setRegisterDialogVisible"
+      style="width: 30rem;"
   >
-    <RegisterForm @switch-to-login="setLoginDialogVisible(true)"></RegisterForm>
+    <RegisterForm @switch-to-login="setLoginDialogVisible(true)"/>
   </Dialog>
 </template>
 

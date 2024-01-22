@@ -18,6 +18,7 @@ Route::get('/{any}', function () {
     return view('app');
 })->where('any', '.*');
 
-Route::post('/login', [AuthController::class, 'login'])->name('login');
-Route::post('/register', [AuthController::class, 'register'])->name('register');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/logout', [AuthController::class, 'logout']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);

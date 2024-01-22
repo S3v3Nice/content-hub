@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import InputText from "primevue/inputtext";
+import Checkbox from "primevue/checkbox";
 import Button from "primevue/button";
 import {ref} from "vue";
 import axios from "axios";
-import router from "@/router";
-import {useAuthStore} from "@/stores/auth";
+import {useRouter} from "vue-router";
+import {useToast} from "primevue/usetoast";
+import Toast from "primevue/toast";
 
-defineEmits(['switch-to-register'])
+defineEmits(['switch-to-forgot-password', 'switch-to-register'])
 
-const loginData = ref({
-  login: '',
-  password: ''
-})
+const toast = useToast()
+const router = useRouter()
 const isProcessing = ref(false)
 const errors = ref([])
-const authStore = useAuthStore()
+const loginData = ref({
+  login: '',
+  password: '',
+  remember: true
+})
 
 function submitLogin() {
   if (isProcessing.value) {
@@ -22,50 +26,67 @@ function submitLogin() {
   }
 
   isProcessing.value = true
+  errors.value = []
 
   axios.post('/login', loginData.value).then((response) => {
     if (!response.data.success) {
-      errors.value = response.data.errors
+      if (response.data.errors) {
+        errors.value = response.data.errors
+      }
+      if (response.data.message) {
+        toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000});
+      }
       return
     }
-
-    authStore.fetchUser().then(() => {
-      router.go(0)
-    })
+    router.go(0)
   }).finally(() => {
     isProcessing.value = false
   })
 }
-
 </script>
 
 <template>
-  <form class="space-y-7">
+  <Toast :breakpoints="{'420px': {width: '18rem'}}"/>
+
+  <form class="space-y-3">
     <div class="space-y-1">
-      <label for="login">E-mail / Имя пользователя</label>
+      <label for="login" :class="{ 'p-error': errors['login'] }">E-mail / Имя пользователя</label>
       <InputText
           id="login"
           v-model="loginData.login"
           class="w-full"
+          :class="{ 'p-invalid': errors['login'] }"
+          aria-describedby="login-error"
       />
+      <small class="p-error" id="login-error">{{ errors['login']?.[0] || '&nbsp;' }}</small>
     </div>
 
     <div class="space-y-1">
-      <label for="password">Пароль</label>
+      <label for="password" :class="{ 'p-error': errors['password'] }">Пароль</label>
       <InputText
           id="password"
           v-model="loginData.password"
           type="password"
           class="w-full"
+          :class="{ 'p-invalid': errors['password'] }"
+          aria-describedby="password-error"
       />
+      <small class="p-error" id="password-error">{{ errors['password']?.[0] || '&nbsp;' }}</small>
     </div>
 
-    <div class="space-y-3">
-      <Button label="Войти" class="w-full" @click="submitLogin"></Button>
-      <Button label="Еще нет учетной записи?" class="w-full p-button-link" @click="$emit('switch-to-register')"></Button>
+    <div class="sm:justify-between sm:flex sm:space-y-0 space-y-5">
+      <div class="space-x-2">
+        <Checkbox input-id="remember" :binary="true" v-model="loginData.remember"/>
+        <label for="remember">Запомнить</label>
+      </div>
+      <Button label="Забыли пароль?" class="p-button-link" @click="$emit('switch-to-forgot-password')"/>
+    </div>
+
+    <div class="pt-4 space-y-2">
+      <Button type="submit" label="Войти" class="w-full" :loading="isProcessing" @click.prevent="submitLogin"/>
+      <Button label="Еще нет учетной записи?" class="w-full p-button-link" @click="$emit('switch-to-register')"/>
     </div>
   </form>
-
 </template>
 
 <style scoped>

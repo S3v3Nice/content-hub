@@ -1,8 +1,8 @@
 import {createRouter, createWebHistory} from "vue-router";
 import {nextTick} from "vue";
-import routes from "./routes.js";
-import {useAuthStore} from "../stores/auth.ts";
-import {changeTitle} from "../helpers.js";
+import routes from "@/router/routes.js";
+import {useAuthStore} from "@/stores/auth.ts";
+import {changeTitle} from "@/helpers.js";
 
 const router = createRouter({
     history: createWebHistory(),

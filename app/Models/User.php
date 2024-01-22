@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Http\Controllers\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,10 +13,11 @@ use Laravel\Sanctum\HasApiTokens;
  * App\Models\User
  *
  * @property int $id
+ * @property string $username
  * @property string $email
  * @property string|null $first_name
  * @property string|null $last_name
- * @property bool $is_admin
+ * @property UserRole $role
  * @property mixed $password
  * @property string|null $remember_token
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -29,10 +31,11 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static \Illuminate\Database\Eloquent\Builder|User newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|User query()
  * @method static \Illuminate\Database\Eloquent\Builder|User whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereUsername($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereFirstName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|User whereIsAdmin($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereRole($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereLastName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User wherePassword($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereRememberToken($value)
@@ -51,9 +54,10 @@ class User extends Authenticatable
     protected $fillable = [
         'first_name',
         'last_name',
+        'username',
         'email',
         'password',
-        'is_admin'
+        'role',
     ];
 
     /**
@@ -73,10 +77,10 @@ class User extends Authenticatable
      */
     protected $casts = [
         'password' => 'hashed',
-        'is_admin' => 'boolean'
+        'role' => UserRole::class,
     ];
 
     protected $attributes = [
-        'is_admin' => false,
+        'role' => UserRole::User,
     ];
 }

@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Http\Controllers\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -15,6 +16,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property int $id
  * @property string $username
  * @property string $email
+ * @property Carbon|null $email_verified_at
  * @property string|null $first_name
  * @property string|null $last_name
  * @property UserRole $role
@@ -33,6 +35,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static \Illuminate\Database\Eloquent\Builder|User whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUsername($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereEmailVerifiedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereFirstName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereRole($value)
@@ -42,7 +45,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -76,6 +79,7 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
+        'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'role' => UserRole::class,
     ];

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Rules\NotVerifiedEmailRule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,78 +12,50 @@ use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
+    use ApiJsonResponse;
     use PasswordValidationRulesTrait;
     use UsernameValidationRulesTrait;
 
     public function login(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'login'    => ['required'],
+            'username' => ['required'],
             'password' => ['required'],
         ]);
 
         if ($validator->fails()) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'errors'  => $validator->errors(),
-                ]
-            );
+            return $this->errorJsonResponse('', $validator->errors());
         }
 
-        $login      = $request->get('login');
-        $loginType  = str_contains($login, '@') ? 'email' : 'username';
-        $attributes = [
-            $loginType => $login,
-            'password' => $request->get('password'),
-        ];
+        $attributes = $request->only('username', 'password');
 
         if (!Auth::attempt($attributes, $request->get('remember', true))) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message'  => 'Неверный логин или пароль.',
-                ]
-            );
+            return $this->errorJsonResponse('Неверное имя пользователя или пароль.');
         }
 
-        return response()->json(['success' => true]);
+        return $this->successJsonResponse();
     }
 
     public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'username'              => $this->getUsernameRules(),
-            'email'                 => ['required', 'email', Rule::unique(User::class)],
+            'email'                 => ['required', 'email', new NotVerifiedEmailRule()],
             'password'              => $this->getPasswordRules(),
             'password_confirmation' => ['required'],
         ]);
 
         if ($validator->fails()) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'errors'  => $validator->errors(),
-                ]
-            );
+            return $this->errorJsonResponse('', $validator->errors());
         }
 
-        $attributes = [
-            'username' => $request->get('username'),
-            'email'    => $request->get('email'),
-            'password' => $request->get('password'),
-        ];
+        $attributes = $request->only('username', 'email', 'password');
 
-        User::create($attributes);
+        $user = User::create($attributes);
+        $user->sendEmailVerificationNotification();
+        Auth::login($user, $request->get('remember', true));
 
-        // TODO: implement sending email verification link
-
-        return response()->json(
-            [
-                'success' => true,
-                'message' => 'Регистрация успешна. Теперь вы можете войти в аккаунт.',
-            ]
-        );
+        return $this->successJsonResponse();
     }
 
     public function logout(Request $request): JsonResponse
@@ -90,7 +63,37 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->flush();
 
-        return response()->json(['success' => true]);
+        return $this->successJsonResponse();
+    }
+
+    public function verifyEmail(Request $request, string $id): JsonResponse
+    {
+        if (!$request->hasValidSignature()) {
+            return $this->errorJsonResponse('Недействительная ссылка подтверждения E-mail адреса.');
+        }
+
+        $user = User::find($id);
+
+        if ($user->hasVerifiedEmail()) {
+            return $this->errorJsonResponse('E-mail адрес пользователя ' . $user->username . ' уже подтвержден.');
+        }
+
+        $validator = Validator::make(
+            ['email' => $user->email],
+            ['email' => [new NotVerifiedEmailRule()]]
+        );
+
+        if ($validator->fails()) {
+            return $this->errorJsonResponse(
+                'E-mail адрес ' . $user->email . ' уже подтвержден у другого пользователя.'
+            );
+        }
+
+        if (!$user->markEmailAsVerified()) {
+            return $this->errorJsonResponse('Не получилось внести изменения в базе данных.');
+        }
+
+        return $this->successJsonResponse();
     }
 
     public function forgotPassword(Request $request): JsonResponse
@@ -100,23 +103,13 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'errors'  => $validator->errors(),
-                ]
-            );
+            return $this->errorJsonResponse('', $validator->errors());
         }
 
         $email = $request->get('email');
 
         // TODO: implement sending password reset link
 
-        return response()->json(
-            [
-                'success' => true,
-                'message' => 'Ссылка для сброса пароля отправлена на ' . $email . '.',
-            ]
-        );
+        return $this->successJsonResponse();
     }
 }

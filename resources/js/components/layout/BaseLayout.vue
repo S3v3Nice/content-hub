@@ -4,7 +4,7 @@ import Header from "@/components/Header.vue"
 
 <template>
   <Header></Header>
-  <div class="container-md">
+  <div class="container-md mt-3">
     <slot></slot>
   </div>
 </template>

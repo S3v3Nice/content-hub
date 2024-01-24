@@ -1,5 +1,6 @@
-import Home from "../components/Home.vue";
-import NotFound from "../components/NotFound.vue";
+import Home from "@/components/Home.vue";
+import NotFound from "@/components/NotFound.vue";
+import EmailVerification from "@/components/auth/EmailVerification.vue";
 
 export default [
     {
@@ -10,6 +11,14 @@ export default [
             {
                 title: 'Добро пожаловать'
             }
+    },
+    {
+        path: '/email/verify/:id/:hash',
+        name: 'email-verification',
+        component: EmailVerification,
+        meta: {
+            title: 'Подтверждение E-mail',
+        },
     },
     {
         path: '/:pathMatch(.*)*',

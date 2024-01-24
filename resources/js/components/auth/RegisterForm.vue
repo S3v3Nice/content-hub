@@ -5,9 +5,11 @@ import Toast from "primevue/toast";
 import {ref} from "vue";
 import axios from "axios";
 import {useToast} from "primevue/usetoast";
+import {useRouter} from "vue-router";
 
 defineEmits(['switch-to-login'])
 
+const router = useRouter()
 const toast = useToast()
 const isProcessing = ref(false)
 const errors = ref([])
@@ -36,7 +38,8 @@ function submitRegister() {
       }
       return
     }
-    toast.add({severity: 'success', summary: 'Успех', detail: response.data.message ?? ''});
+
+    router.go(0)
   }).finally(() => {
     isProcessing.value = false
   })

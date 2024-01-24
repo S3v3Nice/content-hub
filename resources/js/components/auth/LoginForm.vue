@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import InputText from "primevue/inputtext";
-import Checkbox from "primevue/checkbox";
-import Button from "primevue/button";
-import {ref} from "vue";
-import axios from "axios";
-import {useRouter} from "vue-router";
-import {useToast} from "primevue/usetoast";
-import Toast from "primevue/toast";
+import InputText from "primevue/inputtext"
+import Checkbox from "primevue/checkbox"
+import Button from "primevue/button"
+import {ref} from "vue"
+import axios from "axios"
+import {useRouter} from "vue-router"
+import {useToast} from "primevue/usetoast"
+import Toast from "primevue/toast"
 
 defineEmits(['switch-to-forgot-password', 'switch-to-register'])
 
@@ -15,7 +15,7 @@ const router = useRouter()
 const isProcessing = ref(false)
 const errors = ref([])
 const loginData = ref({
-  login: '',
+  username: '',
   password: '',
   remember: true
 })
@@ -34,7 +34,7 @@ function submitLogin() {
         errors.value = response.data.errors
       }
       if (response.data.message) {
-        toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000});
+        toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
       }
       return
     }
@@ -50,15 +50,15 @@ function submitLogin() {
 
   <form class="space-y-3">
     <div class="space-y-1">
-      <label for="login" :class="{ 'p-error': errors['login'] }">E-mail / Имя пользователя</label>
+      <label for="username" :class="{ 'p-error': errors['username'] }">Имя пользователя</label>
       <InputText
-          id="login"
-          v-model="loginData.login"
+          id="username"
+          v-model="loginData.username"
           class="w-full"
-          :class="{ 'p-invalid': errors['login'] }"
-          aria-describedby="login-error"
+          :class="{ 'p-invalid': errors['username'] }"
+          aria-describedby="username-error"
       />
-      <small class="p-error" id="login-error">{{ errors['login']?.[0] || '&nbsp;' }}</small>
+      <small class="p-error" id="username-error">{{ errors['username']?.[0] || '&nbsp' }}</small>
     </div>
 
     <div class="space-y-1">
@@ -71,7 +71,7 @@ function submitLogin() {
           :class="{ 'p-invalid': errors['password'] }"
           aria-describedby="password-error"
       />
-      <small class="p-error" id="password-error">{{ errors['password']?.[0] || '&nbsp;' }}</small>
+      <small class="p-error" id="password-error">{{ errors['password']?.[0] || '&nbsp' }}</small>
     </div>
 
     <div class="sm:justify-between sm:flex sm:space-y-0 space-y-5">

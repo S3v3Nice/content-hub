@@ -1,0 +1,3 @@
+FROM axllent/mailpit
+
+ENTRYPOINT []

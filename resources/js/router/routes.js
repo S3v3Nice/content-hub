@@ -1,6 +1,7 @@
-import Home from "@/components/Home.vue";
-import NotFound from "@/components/NotFound.vue";
-import EmailVerification from "@/components/auth/EmailVerification.vue";
+import Home from '@/components/Home.vue'
+import NotFound from '@/components/NotFound.vue'
+import EmailVerification from '@/components/auth/EmailVerification.vue'
+import PasswordReset from '@/components/auth/PasswordReset.vue'
 
 export default [
     {
@@ -18,6 +19,14 @@ export default [
         component: EmailVerification,
         meta: {
             title: 'Подтверждение E-mail',
+        },
+    },
+    {
+        path: '/password/reset',
+        name: 'password-reset',
+        component: PasswordReset,
+        meta: {
+            title: 'Сброс пароля',
         },
     },
     {

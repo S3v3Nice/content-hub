@@ -7,8 +7,8 @@ use App\Rules\NotVerifiedEmailRule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -98,8 +98,26 @@ class AuthController extends Controller
 
     public function forgotPassword(Request $request): JsonResponse
     {
+        $user = User::where('email', $request->get('email'))->whereNotNull('email_verified_at')->first();
+
+        if ($user === null) {
+            return $this->errorJsonResponse('', ['email' => 'Данный E-mail не подтвержден ни на одном аккаунте.']);
+        }
+
+        $status = Password::sendResetLink(['id' => $user->id]);
+
+        return $status === Password::RESET_LINK_SENT
+            ? $this->successJsonResponse()
+            : $this->errorJsonResponse(__($status));
+    }
+
+    public function resetPassword(Request $request): JsonResponse
+    {
         $validator = Validator::make($request->all(), [
-            'email' => ['required', 'email', Rule::exists(User::class, 'email')],
+            'token'                 => ['required'],
+            'email'                 => ['required', 'email'],
+            'password'              => $this->getPasswordRules(),
+            'password_confirmation' => ['required'],
         ]);
 
         if ($validator->fails()) {
@@ -107,9 +125,25 @@ class AuthController extends Controller
         }
 
         $email = $request->get('email');
+        $user  = User::where('email', $email)->whereNotNull('email_verified_at')->first();
 
-        // TODO: implement sending password reset link
+        if ($user === null) {
+            return $this->errorJsonResponse('E-mail ' . $email . ' не подтвержден ни на одном аккаунте.');
+        }
 
-        return $this->successJsonResponse();
+        $resetData       = $request->only('token', 'password', 'password_confirmation');
+        $resetData['id'] = $user->id;
+
+        $status = Password::reset(
+            $resetData,
+            function (User $user, string $password) {
+                $user->forceFill(['password' => $password])->setRememberToken(null);
+                $user->save();
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? $this->successJsonResponse()
+            : $this->errorJsonResponse(__($status));
     }
 }

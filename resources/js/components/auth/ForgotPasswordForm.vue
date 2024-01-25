@@ -1,10 +1,10 @@
-<script setup lang="ts">
-import InputText from "primevue/inputtext";
-import Button from "primevue/button";
-import {ref} from "vue";
-import axios from "axios";
-import {useToast} from "primevue/usetoast";
-import Toast from "primevue/toast";
+<script setup lang='ts'>
+import InputText from 'primevue/inputtext'
+import Button from 'primevue/button'
+import {ref} from 'vue'
+import axios from 'axios'
+import {useToast} from 'primevue/usetoast'
+import Toast from 'primevue/toast'
 
 const toast = useToast()
 const isProcessing = ref(false)
@@ -27,11 +27,15 @@ function submitForgotPassword() {
         errors.value = response.data.errors
       }
       if (response.data.message) {
-        toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000});
+        toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
       }
       return
     }
-    toast.add({severity: 'success', summary: 'Успех', detail: response.data.message ?? ''});
+    toast.add({
+      severity: 'success',
+      summary: 'Успех',
+      detail: response.data.message ?? `Ссылка для сброса пароля отправлена на ${forgotPasswordData.value.email}.`
+    })
   }).finally(() => {
     isProcessing.value = false
   })

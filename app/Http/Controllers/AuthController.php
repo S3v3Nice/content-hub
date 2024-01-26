@@ -98,10 +98,18 @@ class AuthController extends Controller
 
     public function forgotPassword(Request $request): JsonResponse
     {
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'email'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorJsonResponse('', $validator->errors());
+        }
+
         $user = User::where('email', $request->get('email'))->whereNotNull('email_verified_at')->first();
 
         if ($user === null) {
-            return $this->errorJsonResponse('', ['email' => 'Данный E-mail не подтвержден ни на одном аккаунте.']);
+            return $this->errorJsonResponse('', ['email' => ['Данный E-mail не подтвержден ни на одном аккаунте.']]);
         }
 
         $status = Password::sendResetLink(['id' => $user->id]);

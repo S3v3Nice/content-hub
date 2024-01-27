@@ -10,14 +10,6 @@
     background-color: var(--surface-ground);
 }
 
-body {
-    margin: 0;
-}
-
-*:focus, .p-focus {
-    box-shadow: none !important;
-}
-
 .p-button-link {
     padding: 0 !important;
 }

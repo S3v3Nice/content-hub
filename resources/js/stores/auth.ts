@@ -1,6 +1,6 @@
 import axios from 'axios'
 import {defineStore} from 'pinia'
-import type {User} from "@/types/user";
+import type {User} from '@/types/user'
 
 interface AuthUser {
     isAuthenticated: boolean
@@ -14,6 +14,7 @@ export const useAuthStore = defineStore('auth', {
     }),
     getters: {
         id: (state) => state.user?.id,
+        username: (state) => state.user?.username,
         email: (state) => state.user?.email,
         firstName: (state) => state.user?.firstName,
         lastName: (state) => state.user?.lastName,
@@ -32,7 +33,8 @@ export const useAuthStore = defineStore('auth', {
                 this.isAuthenticated = true
                 this.user = {
                     id: data.id,
-                    email: data.id,
+                    username: data.username,
+                    email: data.email,
                     firstName: data.first_name,
                     lastName: data.last_name,
                     isAdmin: data.is_admin,

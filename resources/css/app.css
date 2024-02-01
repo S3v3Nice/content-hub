@@ -14,6 +14,10 @@
     padding: 0 !important;
 }
 
+.p-toast {
+    max-width: calc(100vw - 40px);
+}
+
 .surface-ground {
     background-color: var(--surface-ground)
 }

@@ -1,11 +1,10 @@
-<script setup lang="ts">
-import InputText from "primevue/inputtext";
-import Button from "primevue/button";
-import Toast from "primevue/toast";
-import {ref} from "vue";
-import axios from "axios";
-import {useToast} from "primevue/usetoast";
-import {useRouter} from "vue-router";
+<script setup lang='ts'>
+import InputText from 'primevue/inputtext'
+import Button from 'primevue/button'
+import {ref} from 'vue'
+import axios from 'axios'
+import {useToast} from 'primevue/usetoast'
+import {useRouter} from 'vue-router'
 
 defineEmits(['switch-to-login'])
 
@@ -34,7 +33,7 @@ function submitRegister() {
         errors.value = response.data.errors
       }
       if (response.data.message) {
-        toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000});
+        toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
       }
       return
     }
@@ -47,8 +46,6 @@ function submitRegister() {
 </script>
 
 <template>
-  <Toast :breakpoints="{'420px': {width: '18rem'}}"/>
-
   <form class="space-y-3">
     <div class="space-y-1">
       <label for="username" :class="{ 'p-error': errors['username'] }">Имя пользователя</label>
@@ -85,6 +82,7 @@ function submitRegister() {
           class="w-full"
           :class="{ 'p-invalid': errors['password'] }"
           aria-describedby="password-error"
+          autocomplete="new-password"
       />
       <small class="p-error" id="password-error">{{ errors['password']?.[0] || '&nbsp;' }}</small>
     </div>
@@ -98,15 +96,21 @@ function submitRegister() {
           class="w-full"
           :class="{ 'p-invalid': errors['password_confirmation'] }"
           aria-describedby="password-confirmation-error"
+          autocomplete="new-password"
       />
-      <small class="p-error" id="password-confirmation-error">{{
-          errors['password_confirmation']?.[0] || '&nbsp;'
-        }}</small>
+      <small class="p-error" id="password-confirmation-error">
+        {{ errors['password_confirmation']?.[0] || '&nbsp;' }}
+      </small>
     </div>
 
     <div class="pt-4 space-y-2">
-      <Button type="submit" label="Зарегистрироваться" class="w-full" :loading="isProcessing"
-              @click.prevent="submitRegister"/>
+      <Button
+          type="submit"
+          label="Зарегистрироваться"
+          class="w-full"
+          :loading="isProcessing"
+          @click.prevent="submitRegister"
+      />
       <Button label="Уже есть учетная запись?" class="w-full p-button-link" @click="$emit('switch-to-login')"/>
     </div>
   </form>

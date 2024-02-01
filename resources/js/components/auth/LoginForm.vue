@@ -1,12 +1,11 @@
-<script setup lang="ts">
-import InputText from "primevue/inputtext"
-import Checkbox from "primevue/checkbox"
-import Button from "primevue/button"
-import {ref} from "vue"
-import axios from "axios"
-import {useRouter} from "vue-router"
-import {useToast} from "primevue/usetoast"
-import Toast from "primevue/toast"
+<script setup lang='ts'>
+import InputText from 'primevue/inputtext'
+import Checkbox from 'primevue/checkbox'
+import Button from 'primevue/button'
+import {ref} from 'vue'
+import axios from 'axios'
+import {useRouter} from 'vue-router'
+import {useToast} from 'primevue/usetoast'
 
 defineEmits(['switch-to-forgot-password', 'switch-to-register'])
 
@@ -46,8 +45,6 @@ function submitLogin() {
 </script>
 
 <template>
-  <Toast :breakpoints="{'420px': {width: '18rem'}}"/>
-
   <form class="space-y-3">
     <div class="space-y-1">
       <label for="username" :class="{ 'p-error': errors['username'] }">Имя пользователя</label>
@@ -57,8 +54,9 @@ function submitLogin() {
           class="w-full"
           :class="{ 'p-invalid': errors['username'] }"
           aria-describedby="username-error"
+          autocomplete="username"
       />
-      <small class="p-error" id="username-error">{{ errors['username']?.[0] || '&nbsp' }}</small>
+      <small class="p-error" id="username-error">{{ errors['username']?.[0] || '&nbsp;' }}</small>
     </div>
 
     <div class="space-y-1">
@@ -70,8 +68,9 @@ function submitLogin() {
           class="w-full"
           :class="{ 'p-invalid': errors['password'] }"
           aria-describedby="password-error"
+          autocomplete="current-password"
       />
-      <small class="p-error" id="password-error">{{ errors['password']?.[0] || '&nbsp' }}</small>
+      <small class="p-error" id="password-error">{{ errors['password']?.[0] || '&nbsp;' }}</small>
     </div>
 
     <div class="sm:justify-between sm:flex sm:space-y-0 space-y-5">

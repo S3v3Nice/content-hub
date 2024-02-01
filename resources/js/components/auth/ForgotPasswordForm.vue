@@ -4,7 +4,6 @@ import Button from 'primevue/button'
 import {ref} from 'vue'
 import axios from 'axios'
 import {useToast} from 'primevue/usetoast'
-import Toast from 'primevue/toast'
 
 const toast = useToast()
 const isProcessing = ref(false)
@@ -43,8 +42,6 @@ function submitForgotPassword() {
 </script>
 
 <template>
-  <Toast :breakpoints="{'420px': {width: '18rem'}}"/>
-
   <form class="space-y-3">
     <p class="pb-3">Укажите ваш E-mail адрес, и мы отправим ссылку для сброса пароля.</p>
     <div class="space-y-1">
@@ -61,8 +58,13 @@ function submitForgotPassword() {
     </div>
 
     <div class="pt-4 space-y-2">
-      <Button type="submit" label="Отправить ссылку" class="w-full" :loading="isProcessing"
-              @click.prevent="submitForgotPassword"/>
+      <Button
+          type="submit"
+          label="Отправить ссылку"
+          class="w-full"
+          :loading="isProcessing"
+          @click.prevent="submitForgotPassword"
+      />
     </div>
   </form>
 </template>

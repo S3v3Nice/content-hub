@@ -5,7 +5,6 @@ import axios from 'axios'
 import {useRoute} from 'vue-router'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
-import Toast from 'primevue/toast'
 import {useToast} from 'primevue/usetoast'
 
 const toast = useToast()
@@ -48,10 +47,8 @@ function submitResetPassword() {
 
 <template>
   <BaseLayout>
-    <Toast :breakpoints="{'420px': {width: '18rem'}}"/>
-
     <div class="flex items-center justify-center">
-      <div class="p-4 surface-overlay rounded" style="width: 30rem;">
+      <div class="p-4 surface-overlay rounded-xl border" style="width: 30rem;">
         <p class="mb-6 text-2xl font-semibold">Сброс пароля</p>
 
         <form class="space-y-3">
@@ -64,6 +61,7 @@ function submitResetPassword() {
                 class="w-full"
                 :class="{ 'p-invalid': errors['password'] }"
                 aria-describedby="password-error"
+                autocomplete="new-password"
             />
             <small class="p-error" id="password-error">{{ errors['password']?.[0] || '&nbsp;' }}</small>
           </div>
@@ -78,15 +76,21 @@ function submitResetPassword() {
                 class="w-full"
                 :class="{ 'p-invalid': errors['password_confirmation'] }"
                 aria-describedby="password-confirmation-error"
+                autocomplete="new-password"
             />
-            <small class="p-error" id="password-confirmation-error">{{
-                errors['password_confirmation']?.[0] || '&nbsp;'
-              }}</small>
+            <small class="p-error" id="password-confirmation-error">
+              {{ errors['password_confirmation']?.[0] || '&nbsp;' }}
+            </small>
           </div>
 
           <div class="pt-4 space-y-2">
-            <Button type="submit" label="Сбросить пароль" class="w-full" :loading="isProcessing"
-                    @click.prevent="submitResetPassword"/>
+            <Button
+                type="submit"
+                label="Сбросить пароль"
+                class="w-full"
+                :loading="isProcessing"
+                @click.prevent="submitResetPassword"
+            />
           </div>
         </form>
       </div>

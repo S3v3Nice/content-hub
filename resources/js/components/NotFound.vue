@@ -1,5 +1,5 @@
 <script setup>
-import ErrorLayout from "@/components/layout/ErrorLayout.vue"
+import ErrorLayout from '@/components/layout/ErrorLayout.vue'
 </script>
 
 <template>

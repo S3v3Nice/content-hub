@@ -1,10 +1,10 @@
-<script setup lang="ts">
-import BaseLayout from "@/components/layout/BaseLayout.vue"
-import {onMounted, ref} from "vue"
-import axios from "axios"
-import {useRoute} from "vue-router"
-import Message from "primevue/message"
-import ProgressSpinner from "primevue/progressspinner"
+<script setup lang='ts'>
+import BaseLayout from '@/components/layout/BaseLayout.vue'
+import {onMounted, ref} from 'vue'
+import axios from 'axios'
+import {useRoute} from 'vue-router'
+import Message from 'primevue/message'
+import ProgressSpinner from 'primevue/progressspinner'
 
 const route = useRoute()
 const isProcessing = ref(true)

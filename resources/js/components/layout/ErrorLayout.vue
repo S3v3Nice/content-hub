@@ -3,9 +3,9 @@
 </script>
 
 <template>
-  <div class="container-md">
-    <slot></slot>
-  </div>
+    <div class="container-md">
+        <slot></slot>
+    </div>
 </template>
 
 <style scoped>

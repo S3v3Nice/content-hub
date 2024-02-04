@@ -30,7 +30,7 @@ const userMenuItems = computed<MenuItem[]>(() => [
         label: 'Настройки',
         icon: 'fa-solid fa-gear',
         visible: authStore.isAuthenticated,
-        command: () => router.push({name: 'settings'}),
+        route: 'settings',
     },
     {
         visible: authStore.isAuthenticated,
@@ -130,13 +130,19 @@ function logout() {
       </span>
         </template>
         <template #item="{ item, props }">
-            <a class="flex space-x-5 justify-between" v-bind="props.action" @click.stop="invokeUserMenuCommand(item)">
+            <Component
+                :is="item.route ? 'RouterLink' : 'a'"
+                :to="{ name: item.route }"
+                class="flex space-x-5 justify-between"
+                v-bind="props.action"
+                @click.stop="invokeUserMenuCommand(item)"
+            >
                 <div>
                     <span :class="item.icon" style="width: 20px;"/>
                     <span class="ml-2">{{ item.label }}</span>
                 </div>
                 <InputSwitch v-if="item.switchValue != undefined" :model-value="item.switchValue"></InputSwitch>
-            </a>
+            </Component>
         </template>
     </Menu>
 

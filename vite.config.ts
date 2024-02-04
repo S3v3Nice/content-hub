@@ -4,9 +4,8 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
 export default defineConfig((configEnv) => {
-    // Load .env file based on `mode` in the current working directory.
-    // Set the third parameter to '' to load all $env regardless of the `VITE_` prefix.
-    const env = loadEnv(configEnv.mode, process.cwd(), '')
+    // Load .env file based on `mode` in the current working directory
+    const env = loadEnv(configEnv.mode, process.cwd())
 
     return {
         publicDir: 'public',
@@ -19,7 +18,7 @@ export default defineConfig((configEnv) => {
             host: '0.0.0.0',
             hmr: {
                 clientPort: parseInt(env.VITE_PORT),
-                host: env.APP_URL.replace(/^(https?:\/\/)/, ''),
+                host: env.VITE_APP_URL.replace(/^(https?:\/\/)/, ''),
                 protocol: 'ws'
             },
             port: 5173,
@@ -29,7 +28,7 @@ export default defineConfig((configEnv) => {
         },
         plugins: [
             laravel({
-                input: ['resources/css/app.css', 'resources/js/app.js'],
+                input: ['resources/css/app.css', 'resources/js/app.ts'],
                 refresh: true,
             }),
             vue(),

@@ -1,10 +1,15 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "compilerOptions": {
-    "paths": {
-      "@/*": ["./resources/js/*"],
-    },
-    "noImplicitAny": false,
-    "allowJs": true
-  },
+    "extends": "@vue/tsconfig/tsconfig.dom.json",
+    "compilerOptions": {
+        "paths": {
+            "@/*": [
+                "./resources/js/*"
+            ]
+        },
+        "noImplicitAny": false,
+        "allowJs": true,
+        "types": [
+            "vite/client"
+        ]
+    }
 }

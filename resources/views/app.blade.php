@@ -9,7 +9,7 @@
 
     @vite('resources/css/app.css')
     <link id="theme-link" rel="stylesheet" href="{{ asset('themes/light/theme.css') }}">
-    @vite('resources/js/app.js')
+    @vite('resources/js/app.ts')
 </head>
 
 <body>

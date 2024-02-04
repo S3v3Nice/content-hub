@@ -13,16 +13,25 @@ import RegisterForm from '@/components/auth/RegisterForm.vue'
 import {useRouter} from 'vue-router'
 import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm.vue'
 import type {MenuItem} from 'primevue/menuitem'
+import {useModalStore} from '@/stores/modal'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const modalStore = useModalStore()
 const themeManager = ref(useThemeManager())
 const isLightTheme = computed(() => themeManager.value.isLight())
-const isLoginDialogVisible = ref(false)
-const isForgotPasswordDialogVisible = ref(false)
-const isRegisterDialogVisible = ref(false)
 const userMenu = ref<Menu>()
 const userMenuItems = computed<MenuItem[]>(() => [
+    {
+        visible: authStore.isAuthenticated,
+        separator: true,
+    },
+    {
+        label: 'Настройки',
+        icon: 'fa-solid fa-gear',
+        visible: authStore.isAuthenticated,
+        command: () => router.push({name: 'settings'}),
+    },
     {
         visible: authStore.isAuthenticated,
         separator: true,
@@ -40,13 +49,13 @@ const userMenuItems = computed<MenuItem[]>(() => [
         label: 'Войти',
         icon: 'fa-solid fa-arrow-right-to-bracket',
         visible: !authStore.isAuthenticated,
-        command: () => setLoginDialogVisible(true),
+        command: () => modalStore.setLoginVisible(),
     },
     {
         label: 'Регистрация',
         icon: 'fa-solid fa-user-plus',
         visible: !authStore.isAuthenticated,
-        command: () => setRegisterDialogVisible(true),
+        command: () => modalStore.setRegisterVisible(),
     },
     {
         label: 'Выйти',
@@ -76,28 +85,6 @@ function logout() {
     axios.post('/logout').then(() => {
         router.go(0)
     })
-}
-
-function setLoginDialogVisible(isVisible: boolean) {
-    if (isVisible) {
-        isRegisterDialogVisible.value = false
-        isForgotPasswordDialogVisible.value = false
-    }
-    isLoginDialogVisible.value = isVisible
-}
-
-function setForgotPasswordDialogVisible(isVisible: boolean) {
-    if (isVisible) {
-        isLoginDialogVisible.value = false
-    }
-    isForgotPasswordDialogVisible.value = isVisible
-}
-
-function setRegisterDialogVisible(isVisible: boolean) {
-    if (isVisible) {
-        isLoginDialogVisible.value = false
-    }
-    isRegisterDialogVisible.value = isVisible
 }
 </script>
 
@@ -156,27 +143,27 @@ function setRegisterDialogVisible(isVisible: boolean) {
     <Dialog
         header="Вход"
         position="top"
-        :visible="isLoginDialogVisible"
+        :visible="modalStore.isLogin"
         :modal="true"
         :draggable="false"
         :dismissable-mask="true"
-        @update:visible="setLoginDialogVisible"
+        @update:visible="modalStore.setLoginVisible"
         style="width: 30rem;"
     >
         <LoginForm
-            @switch-to-forgot-password="setForgotPasswordDialogVisible(true)"
-            @switch-to-register="setRegisterDialogVisible(true)"
+            @switch-to-forgot-password="modalStore.setForgotPasswordVisible(true)"
+            @switch-to-register="modalStore.setRegisterVisible(true)"
         />
     </Dialog>
 
     <Dialog
         header="Сброс пароля"
         position="top"
-        :visible="isForgotPasswordDialogVisible"
+        :visible="modalStore.isForgotPassword"
         :modal="true"
         :draggable="false"
         :dismissable-mask="true"
-        @update:visible="setForgotPasswordDialogVisible"
+        @update:visible="modalStore.setForgotPasswordVisible"
         style="width: 30rem;"
     >
         <template #header>
@@ -185,7 +172,7 @@ function setRegisterDialogVisible(isVisible: boolean) {
                     icon="fa-solid fa-arrow-left"
                     aria-label="Назад"
                     class="p-dialog-header-icon"
-                    @click="setLoginDialogVisible(true)"
+                    @click="modalStore.setLoginVisible()"
                 />
                 <span class="p-dialog-title">Сброс пароля</span>
             </div>
@@ -196,14 +183,14 @@ function setRegisterDialogVisible(isVisible: boolean) {
     <Dialog
         header="Регистрация"
         position="top"
-        :visible="isRegisterDialogVisible"
+        :visible="modalStore.isRegister"
         :modal="true"
         :draggable="false"
         :dismissable-mask="true"
-        @update:visible="setRegisterDialogVisible"
+        @update:visible="modalStore.setRegisterVisible"
         style="width: 30rem;"
     >
-        <RegisterForm @switch-to-login="setLoginDialogVisible(true)"/>
+        <RegisterForm @switch-to-login="modalStore.setLoginVisible()"/>
     </Dialog>
 </template>
 

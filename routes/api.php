@@ -27,4 +27,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/security/username', [SettingsController::class, 'changeUsername']);
     Route::put('/settings/security/email', [SettingsController::class, 'changeEmail']);
     Route::put('/settings/security/password', [SettingsController::class, 'changePassword']);
+    Route::post('/settings/security/email-verification', [SettingsController::class, 'sendEmailVerificationLink'])->middleware(['throttle:1,1']);
 });

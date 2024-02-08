@@ -14,6 +14,19 @@ class SettingsController extends Controller
     use PasswordValidationRulesTrait;
     use UsernameValidationRulesTrait;
 
+    public function sendEmailVerificationLink(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+
+        if ($user->hasVerifiedEmail()) {
+            return $this->errorJsonResponse('E-mail данного пользователя уже подтверждён.');
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return $this->successJsonResponse('Ссылка для подтверждения E-mail отправлена на ' . $user->email . '.');
+    }
+
     public function changeProfileSettings(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [

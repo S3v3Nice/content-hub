@@ -16,11 +16,13 @@ export const useAuthStore = defineStore('auth', {
         id: (state) => state.user?.id,
         username: (state) => state.user?.username,
         email: (state) => state.user?.email,
+        emailVerifiedAt: (state) => state.user?.emailVerifiedAt,
         firstName: (state) => state.user?.firstName,
         lastName: (state) => state.user?.lastName,
-        isAdmin: (state) => state.user?.isAdmin,
+        role: (state) => state.user?.role,
         createdAt: (state) => state.user?.createdAt,
         updatedAt: (state) => state.user?.updatedAt,
+        hasVerifiedEmail: (state) => state.user?.emailVerifiedAt !== null,
     },
     actions: {
         async fetchUser() {
@@ -35,9 +37,10 @@ export const useAuthStore = defineStore('auth', {
                     id: data.id,
                     username: data.username,
                     email: data.email,
+                    emailVerifiedAt: data.email_verified_at,
                     firstName: data.first_name,
                     lastName: data.last_name,
-                    isAdmin: data.is_admin,
+                    role: data.role,
                     createdAt: data.created_at,
                     updatedAt: data.updated_at
                 }

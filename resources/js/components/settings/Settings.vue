@@ -15,7 +15,6 @@ const tabs = ref<MenuItem[]>([
 const activeTabIndex = ref(getActualActiveTabIndex())
 
 onUpdated(() => {
-    console.log('onUpdated')
     activeTabIndex.value = getActualActiveTabIndex()
     isLoadingSection.value = false
 })

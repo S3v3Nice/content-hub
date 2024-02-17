@@ -3,13 +3,14 @@ import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 import {ref} from 'vue'
-import axios from 'axios'
+import axios, {type AxiosError} from 'axios'
 import {useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
+import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 
 defineEmits(['switch-to-forgot-password', 'switch-to-register'])
 
-const toast = useToast()
+const toastHelper = new ToastHelper(useToast())
 const router = useRouter()
 const isProcessing = ref(false)
 const errors = ref([])
@@ -20,24 +21,22 @@ const loginData = ref({
 })
 
 function submitLogin() {
-    if (isProcessing.value) {
-        return
-    }
-
     isProcessing.value = true
     errors.value = []
 
     axios.post('/login', loginData.value).then((response) => {
-        if (!response.data.success) {
+        if (response.data.success) {
+            router.go(0)
+        } else {
             if (response.data.errors) {
                 errors.value = response.data.errors
             }
             if (response.data.message) {
-                toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
+                toastHelper.error(response.data.message)
             }
-            return
         }
-        router.go(0)
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
     }).finally(() => {
         isProcessing.value = false
     })

@@ -1,13 +1,14 @@
 <script setup lang='ts'>
 import BaseLayout from '@/components/layout/BaseLayout.vue'
 import {ref} from 'vue'
-import axios from 'axios'
+import axios, {type AxiosError} from 'axios'
 import {useRoute} from 'vue-router'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import {useToast} from 'primevue/usetoast'
+import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 
-const toast = useToast()
+const toastHelper = new ToastHelper(useToast())
 const route = useRoute()
 const resetPasswordApiUrl = route.path
 const isProcessing = ref(false)
@@ -24,21 +25,18 @@ function submitResetPassword() {
     errors.value = []
 
     axios.post(resetPasswordApiUrl, data.value).then((response) => {
-        if (!response.data.success) {
+        if (response.data.success) {
+            toastHelper.success('Пароль сброшен.')
+        } else {
             if (response.data.errors) {
                 errors.value = response.data.errors
             }
             if (response.data.message) {
-                toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
+                toastHelper.error(response.data.message)
             }
-            return
         }
-
-        toast.add({
-            severity: 'success',
-            summary: 'Успех',
-            detail: response.data.message ?? `Пароль успешно сброшен.`
-        })
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
     }).finally(() => {
         isProcessing.value = false
     })

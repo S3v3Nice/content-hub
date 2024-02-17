@@ -2,10 +2,11 @@
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import {ref} from 'vue'
-import axios from 'axios'
+import axios, {type AxiosError} from 'axios'
 import {useToast} from 'primevue/usetoast'
+import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 
-const toast = useToast()
+const toastHelper = new ToastHelper(useToast())
 const isProcessing = ref(false)
 const errors = ref([])
 const forgotPasswordData = ref({
@@ -13,28 +14,23 @@ const forgotPasswordData = ref({
 })
 
 function submitForgotPassword() {
-    if (isProcessing.value) {
-        return
-    }
-
     isProcessing.value = true
     errors.value = []
 
     axios.post('/forgot-password', forgotPasswordData.value).then((response) => {
-        if (!response.data.success) {
+        if (response.data.success) {
+            toastHelper.success(`Ссылка для сброса пароля отправлена на ${forgotPasswordData.value.email}.`)
+        } else {
             if (response.data.errors) {
                 errors.value = response.data.errors
             }
             if (response.data.message) {
-                toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
+                toastHelper.error(response.data.message)
             }
             return
         }
-        toast.add({
-            severity: 'success',
-            summary: 'Успех',
-            detail: response.data.message ?? `Ссылка для сброса пароля отправлена на ${forgotPasswordData.value.email}.`
-        })
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
     }).finally(() => {
         isProcessing.value = false
     })

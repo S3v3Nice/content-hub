@@ -7,14 +7,14 @@ use Illuminate\Support\MessageBag;
 
 trait ApiJsonResponse
 {
-    private function successJsonResponse(string $message = ''): JsonResponse
+    private function successJsonResponse(array $data = []): JsonResponse
     {
         $response = [
             'success' => true,
         ];
 
-        if (mb_strlen($message) !== 0) {
-            $response['message'] = $message;
+        if (count($data) !== 0) {
+            $response = array_merge($response, $data);
         }
 
         return response()->json($response);

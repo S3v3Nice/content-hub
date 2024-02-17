@@ -6,10 +6,11 @@ import Divider from 'primevue/divider'
 import InputGroup from 'primevue/inputgroup'
 import Message from 'primevue/message'
 import {useAuthStore} from '@/stores/auth'
-import axios from 'axios'
+import axios, {type AxiosError} from 'axios'
 import {useToast} from 'primevue/usetoast'
+import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 
-const toast = useToast()
+const toastHelper = new ToastHelper(useToast())
 const authStore = useAuthStore()
 
 const usernameData = ref({
@@ -59,18 +60,20 @@ function submitChangeUsername() {
     usernameErrors.value = []
 
     axios.put('/api/settings/security/username', usernameData.value).then((response) => {
-        if (!response.data.success) {
+        if (response.data.success) {
+            toggleChangeUsername()
+            toastHelper.success('Имя пользователя изменено.')
+            authStore.fetchUser()
+        } else {
             if (response.data.errors) {
                 usernameErrors.value = response.data.errors
             }
             if (response.data.message) {
-                toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
+                toastHelper.error(response.data.message)
             }
-            return
         }
-        toggleChangeUsername()
-        toast.add({severity: 'success', summary: 'Успех', detail: response.data.message, life: 5000})
-        authStore.fetchUser()
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
     }).finally(() => {
         isProcessingChangeUsername.value = false
     })
@@ -94,18 +97,20 @@ function submitChangeEmail() {
     emailErrors.value = []
 
     axios.put('/api/settings/security/email', emailData.value).then((response) => {
-        if (!response.data.success) {
+        if (response.data.success) {
+            toggleChangeEmail()
+            toastHelper.success('E-mail изменён. Подтвердите его, перейдя по ссылке из письма.')
+            authStore.fetchUser()
+        } else {
             if (response.data.errors) {
                 emailErrors.value = response.data.errors
             }
             if (response.data.message) {
-                toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
+                toastHelper.error(response.data.message)
             }
-            return
         }
-        toggleChangeEmail()
-        toast.add({severity: 'success', summary: 'Успех', detail: response.data.message, life: 5000})
-        authStore.fetchUser()
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
     }).finally(() => {
         isProcessingChangeEmail.value = false
     })
@@ -115,16 +120,16 @@ function sendEmailVerificationLink() {
     isProcessingSendEmailVerificationLink.value = true
 
     axios.post('/api/settings/security/email-verification').then((response) => {
-        if (!response.data.success) {
+        if (response.data.success) {
+            toastHelper.success('Ссылка для подтверждения E-mail отправлена.')
+            authStore.fetchUser()
+        } else {
             if (response.data.message) {
-                toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
+                toastHelper.error(response.data.message)
             }
-            return
         }
-        toast.add({severity: 'success', summary: 'Успех', detail: response.data.message, life: 5000})
-        authStore.fetchUser()
-    }).catch(() => {
-        toast.add({severity: 'error', summary: 'Ошибка', detail: 'Повторите попытку позже.', life: 5000})
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
     }).finally(() => {
         isProcessingSendEmailVerificationLink.value = false
     })
@@ -144,17 +149,19 @@ function submitChangePassword() {
     passwordErrors.value = []
 
     axios.put('/api/settings/security/password', passwordData.value).then((response) => {
-        if (!response.data.success) {
+        if (response.data.success) {
+            toggleChangePassword()
+            toastHelper.success('Пароль изменён.')
+        } else {
             if (response.data.errors) {
                 passwordErrors.value = response.data.errors
             }
             if (response.data.message) {
-                toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
+                toastHelper.error(response.data.message)
             }
-            return
         }
-        toggleChangePassword()
-        toast.add({severity: 'success', summary: 'Успех', detail: response.data.message, life: 5000})
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
     }).finally(() => {
         isProcessingChangePassword.value = false
     })

@@ -89,8 +89,8 @@ function logout() {
 </script>
 
 <template>
-    <div class="header surface-overlay p-2 border-b">
-        <div class="container-md flex space-x-4 justify-between h-full">
+    <div class="header surface-overlay p-2 lg:pl-0 lg:pr-0 border-b">
+        <div class="page-container flex space-x-4 justify-between h-full">
             <RouterLink :to="{name: 'home'}">
                 <img v-if="isLightTheme" src="/images/logo.svg" alt="Logo" class="h-full">
                 <img v-else src="/images/logo-dark.svg" alt="Logo" class="h-full">

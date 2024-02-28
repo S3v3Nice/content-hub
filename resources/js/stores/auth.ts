@@ -1,6 +1,6 @@
 import axios from 'axios'
 import {defineStore} from 'pinia'
-import type {User} from '@/types/user'
+import {type User, UserRole} from '@/types/user'
 
 interface AuthUser {
     isAuthenticated: boolean
@@ -16,17 +16,19 @@ export const useAuthStore = defineStore('auth', {
         id: (state) => state.user?.id,
         username: (state) => state.user?.username,
         email: (state) => state.user?.email,
-        emailVerifiedAt: (state) => state.user?.emailVerifiedAt,
-        firstName: (state) => state.user?.firstName,
-        lastName: (state) => state.user?.lastName,
+        emailVerifiedAt: (state) => state.user?.email_verified_at,
+        firstName: (state) => state.user?.first_name,
+        lastName: (state) => state.user?.last_name,
         role: (state) => state.user?.role,
-        createdAt: (state) => state.user?.createdAt,
-        updatedAt: (state) => state.user?.updatedAt,
-        hasVerifiedEmail: (state) => state.user?.emailVerifiedAt !== null,
+        createdAt: (state) => state.user?.created_at,
+        updatedAt: (state) => state.user?.updated_at,
+        hasVerifiedEmail: (state) => state.user?.email_verified_at !== null,
+        isAdmin: (state) => state.user?.role === UserRole.ADMIN,
+        isModerator: (state) => state.user?.role === UserRole.MODERATOR || state.user?.role === UserRole.ADMIN,
     },
     actions: {
         async fetchUser() {
-            await axios.get('/api/user').then(({data}) => {
+            await axios.get('/api/auth/user').then(({data}) => {
                 if (Object.keys(data).length === 0) {
                     this.reset()
                     return
@@ -37,12 +39,12 @@ export const useAuthStore = defineStore('auth', {
                     id: data.id,
                     username: data.username,
                     email: data.email,
-                    emailVerifiedAt: data.email_verified_at,
-                    firstName: data.first_name,
-                    lastName: data.last_name,
+                    email_verified_at: data.email_verified_at,
+                    first_name: data.first_name,
+                    last_name: data.last_name,
                     role: data.role,
-                    createdAt: data.created_at,
-                    updatedAt: data.updated_at
+                    created_at: data.created_at,
+                    updated_at: data.updated_at
                 }
             }).catch(() => {
                 this.reset()

@@ -27,6 +27,12 @@ const userMenuItems = computed<MenuItem[]>(() => [
         separator: true,
     },
     {
+        label: 'Панель управления',
+        icon: 'fa-solid fa-hammer',
+        visible: authStore.isAdmin || authStore.isModerator,
+        route: 'dashboard',
+    },
+    {
         label: 'Настройки',
         icon: 'fa-solid fa-gear',
         visible: authStore.isAuthenticated,

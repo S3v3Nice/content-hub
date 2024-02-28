@@ -6,11 +6,18 @@ import Settings from '@/components/settings/Settings.vue'
 import ProfileSettings from '@/components/settings/ProfileSettings.vue'
 import SecuritySettings from '@/components/settings/SecuritySettings.vue'
 import type {RouteRecordRaw} from 'vue-router'
+import Dashboard from '@/components/dashboard/Dashboard.vue'
+import CategoriesDashboardSection from '@/components/dashboard/CategoriesDashboardSection.vue'
+import UsersDashboardSection from '@/components/dashboard/UsersDashboardSection.vue'
+import type {Component} from 'vue'
 
 declare module 'vue-router' {
     interface RouteMeta {
         title: string
         requiresAuth?: boolean
+        requiresModerator?: boolean
+        requiresAdmin?: boolean
+        defaultComponent?: Component
     }
 }
 
@@ -68,6 +75,30 @@ const routes: RouteRecordRaw[] = [
                     meta:
                         {
                             title: 'Настройки безопасности',
+                        },
+                },
+            ],
+    },
+    {
+        path: '/dashboard',
+        name: 'dashboard',
+        component: Dashboard,
+        redirect: {name: 'dashboard.users'},
+        meta:
+            {
+                title: 'Панель управления',
+                requiresAuth: true,
+                requiresModerator: true,
+            },
+        children:
+            [
+                {
+                    path: 'users',
+                    name: 'dashboard.users',
+                    component: UsersDashboardSection,
+                    meta:
+                        {
+                            title: 'Пользователи - Панель управления',
                         },
                 },
             ],

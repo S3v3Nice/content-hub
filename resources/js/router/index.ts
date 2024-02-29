@@ -1,9 +1,10 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import {nextTick} from 'vue'
+import {type Component, nextTick} from 'vue'
 import routes from '@/router/routes'
 import {useAuthStore} from '@/stores/auth'
 import {changeTitle} from '@/helpers'
 import AuthRequired from '@/components/auth/AuthRequired.vue'
+import NoPermission from '@/components/NoPermission.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -13,16 +14,41 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
     const authStore = useAuthStore()
 
-    authStore.fetchUser().then(() => {
-        let isAuthenticated = authStore.isAuthenticated
+    function displayComponent(component?: Component) {
+        to.matched[0].components!.default = component ?? to.matched[0].meta.defaultComponent!
+        next()
+    }
 
-        if (to.matched.some(record => record.meta.requiresAuth)) {
-            if (!isAuthenticated) {
-                to.matched[0].components!.default = AuthRequired
-            }
+    if (!to.matched[0].meta.defaultComponent) {
+        to.matched[0].meta.defaultComponent = to.matched[0].components!.default
+    }
+
+    authStore.fetchUser().then(() => {
+        if (
+            to.matched.some(record => record.meta.requiresAuth) &&
+            !authStore.isAuthenticated
+        ) {
+            displayComponent(AuthRequired)
+            return
         }
 
-        next()
+        if (
+            to.matched.some(record => record.meta.requiresModerator) &&
+            !authStore.isModerator
+        ) {
+            displayComponent(NoPermission)
+            return
+        }
+
+        if (
+            to.matched.some(record => record.meta.requiresAdmin) &&
+            !authStore.isAdmin
+        ) {
+            displayComponent(NoPermission)
+            return
+        }
+
+        displayComponent()
     })
 })
 

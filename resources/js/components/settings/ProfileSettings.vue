@@ -3,10 +3,11 @@ import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import {ref} from 'vue'
 import {useAuthStore} from '@/stores/auth'
-import axios from 'axios'
+import axios, {type AxiosError} from 'axios'
 import {useToast} from 'primevue/usetoast'
+import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 
-const toast = useToast()
+const toastHelper = new ToastHelper(useToast())
 const authStore = useAuthStore()
 
 const data = ref({
@@ -21,17 +22,19 @@ function submit() {
     errors.value = []
 
     axios.put('/api/settings/profile', data.value).then((response) => {
-        if (!response.data.success) {
+        if (response.data.success) {
+            toastHelper.success('Настройки профиля изменены.')
+            authStore.fetchUser()
+        } else {
             if (response.data.errors) {
                 errors.value = response.data.errors
             }
             if (response.data.message) {
-                toast.add({severity: 'error', summary: 'Ошибка', detail: response.data.message, life: 5000})
+                toastHelper.error(response.data.message)
             }
-            return
         }
-        toast.add({severity: 'success', summary: 'Успех', detail: response.data.message, life: 5000})
-        authStore.fetchUser()
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
     }).finally(() => {
         isProcessing.value = false
     })

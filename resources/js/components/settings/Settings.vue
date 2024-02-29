@@ -2,34 +2,31 @@
 import BaseLayout from '@/components/layout/BaseLayout.vue'
 import type {MenuItem} from 'primevue/menuitem'
 import {onUpdated, ref} from 'vue'
-import type {TabMenuChangeEvent} from 'primevue/tabmenu'
 import TabMenu from 'primevue/tabmenu'
 import Skeleton from 'primevue/skeleton'
-import {useRoute, useRouter} from 'vue-router'
+import {useRoute} from 'vue-router'
 
-const router = useRouter()
 const route = useRoute()
 const isLoadingSection = ref(false)
 const tabs = ref<MenuItem[]>([
     {label: 'Профиль', route: 'settings.profile', icon: 'fa-regular fa-user'},
-    {label: 'Безопасность', route: 'settings.security', icon: 'fa-solid fa-shield-halved'},
+    {label: 'Безопасность', route: 'settings.security', icon: 'fa-solid fa-shield-halved', isWarningBadge: true},
 ])
 const activeTabIndex = ref(getActualActiveTabIndex())
 
 onUpdated(() => {
     activeTabIndex.value = getActualActiveTabIndex()
+    isLoadingSection.value = false
 })
 
 function getActualActiveTabIndex() {
     return tabs.value.findIndex(tab => tab.route === route.name)
 }
 
-function onTabChange(event: TabMenuChangeEvent) {
-    isLoadingSection.value = true
-    const selectedSection = tabs.value[event.index]
-    router.push({name: selectedSection.route}).finally(() => {
-        isLoadingSection.value = false
-    })
+function onTabRouteLinkClick(item: MenuItem) {
+    if (route.name !== item.route) {
+        isLoadingSection.value = true
+    }
 }
 </script>
 
@@ -37,7 +34,17 @@ function onTabChange(event: TabMenuChangeEvent) {
     <BaseLayout>
         <div class="surface-overlay rounded-xl border">
             <p class="text-3xl font-semibold p-4">Настройки</p>
-            <TabMenu class="pl-2 pr-2" :model="tabs" :active-index="activeTabIndex" @tab-change="onTabChange"/>
+            <TabMenu class="pl-2 pr-2" :model="tabs" :active-index="activeTabIndex">
+                <template #item="{ item, props }">
+
+                    <RouterLink v-bind="props.action" :to="{ name: item.route }" @click="onTabRouteLinkClick(item)" class="flex align-items-center gap-2">
+                        <span class="p-menuitem-icon" :class="item.icon" />
+                        <span class="p-menuitem-text text">
+                            {{ item.label }}
+                        </span>
+                    </RouterLink>
+                </template>
+            </TabMenu>
         </div>
         <div class="p-4 surface-overlay rounded-xl border mt-3">
             <div class="settings-section-content">

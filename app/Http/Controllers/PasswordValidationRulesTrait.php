@@ -4,8 +4,13 @@ namespace App\Http\Controllers;
 
 trait PasswordValidationRulesTrait
 {
-    protected function getPasswordRules(): array
+    protected function getPasswordRules(bool $shouldBeConfirmed = true): array
     {
-        return ['required', 'string', 'min:8', 'confirmed'];
+        $rules = ['required', 'string', 'min:8'];
+        if ($shouldBeConfirmed) {
+            $rules[] = 'confirmed';
+        }
+
+        return $rules;
     }
 }

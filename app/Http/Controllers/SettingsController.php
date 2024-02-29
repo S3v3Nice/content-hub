@@ -14,6 +14,19 @@ class SettingsController extends Controller
     use PasswordValidationRulesTrait;
     use UsernameValidationRulesTrait;
 
+    public function sendEmailVerificationLink(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+
+        if ($user->hasVerifiedEmail()) {
+            return $this->errorJsonResponse('E-mail данного пользователя уже подтверждён.');
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return $this->successJsonResponse();
+    }
+
     public function changeProfileSettings(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -28,7 +41,7 @@ class SettingsController extends Controller
         $user = Auth::user();
         $user->update($validator->getData());
 
-        return $this->successJsonResponse('Настройки профиля изменены.');
+        return $this->successJsonResponse();
     }
 
     public function changeUsername(Request $request): JsonResponse
@@ -45,7 +58,7 @@ class SettingsController extends Controller
         $user->username = $request->get('username');
         $user->save();
 
-        return $this->successJsonResponse('Имя пользователя изменено.');
+        return $this->successJsonResponse();
     }
 
     public function changeEmail(Request $request): JsonResponse
@@ -68,7 +81,7 @@ class SettingsController extends Controller
 
         $user->sendEmailVerificationNotification();
 
-        return $this->successJsonResponse('Ссылка для подтверждения E-mail отправлена на ' . $email . '.');
+        return $this->successJsonResponse();
     }
 
     public function changePassword(Request $request): JsonResponse
@@ -86,6 +99,6 @@ class SettingsController extends Controller
         $user->password = $request->get('password');
         $user->save();
 
-        return $this->successJsonResponse('Пароль изменён.');
+        return $this->successJsonResponse();
     }
 }

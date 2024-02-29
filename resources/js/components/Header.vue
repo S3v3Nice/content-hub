@@ -27,6 +27,12 @@ const userMenuItems = computed<MenuItem[]>(() => [
         separator: true,
     },
     {
+        label: 'Панель управления',
+        icon: 'fa-solid fa-hammer',
+        visible: authStore.isAdmin || authStore.isModerator,
+        route: 'dashboard',
+    },
+    {
         label: 'Настройки',
         icon: 'fa-solid fa-gear',
         visible: authStore.isAuthenticated,
@@ -89,11 +95,11 @@ function logout() {
 </script>
 
 <template>
-    <div class="surface-overlay pb-2 pt-2 border-b" style="height: 3.5rem; max-width: 100%">
-        <div class="container-md flex space-x-4 justify-between" style="height: 100%">
+    <div class="header surface-overlay p-2 lg:pl-0 lg:pr-0 border-b">
+        <div class="page-container flex space-x-4 justify-between h-full">
             <RouterLink :to="{name: 'home'}">
-                <img v-if="isLightTheme" src="/images/logo.svg" alt="Logo" style="height: 100%">
-                <img v-else src="/images/logo-dark.svg" alt="Logo" style="height: 100%">
+                <img v-if="isLightTheme" src="/images/logo.svg" alt="Logo" class="h-full">
+                <img v-else src="/images/logo-dark.svg" alt="Logo" class="h-full">
             </RouterLink>
             <Button
                 v-if="!authStore.isAuthenticated"
@@ -124,10 +130,10 @@ function logout() {
         @focus="() => nextTick(() => (userMenu!['focusedOptionIndex'] = -1))"
     >
         <template v-if="authStore.isAuthenticated" #start>
-      <span class="flex p-2 gap-2 items-center">
-        <Avatar size="large" :label="authStore.username![0]" shape="circle"/>
-        <span>{{ authStore.username }}</span>
-      </span>
+            <span class="flex p-2 gap-2 items-center">
+                <Avatar size="large" :label="authStore.username![0]" shape="circle"/>
+                <span>{{ authStore.username }}</span>
+            </span>
         </template>
         <template #item="{ item, props }">
             <Component
@@ -138,7 +144,7 @@ function logout() {
                 @click.stop="invokeUserMenuCommand(item)"
             >
                 <div>
-                    <span :class="item.icon" style="width: 20px;"/>
+                    <span class="menu-item-icon" :class="item.icon"/>
                     <span class="ml-2">{{ item.label }}</span>
                 </div>
                 <InputSwitch v-if="item.switchValue != undefined" :model-value="item.switchValue"></InputSwitch>
@@ -201,5 +207,11 @@ function logout() {
 </template>
 
 <style scoped>
+.header {
+    height: 3.5rem;
+}
 
+.menu-item-icon {
+    width: 20px;
+}
 </style>

@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <div class="container-md">
+    <div class="page-container">
         <slot></slot>
     </div>
 </template>

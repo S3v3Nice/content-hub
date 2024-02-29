@@ -12,12 +12,6 @@ interface ResponseData {
     success: boolean
     message?: string
     errors?: string[][]
-    records?: User[]
-    pagination?: {
-        total_records: number
-        current_page: number
-        total_pages: number
-    }
 }
 
 const props = defineProps<{

@@ -24,6 +24,12 @@ const menuItems = ref<DashboardMenuItem[]>([
         icon: 'fa-solid fa-user',
         route: 'dashboard.users',
     },
+    {
+        label: 'Категории',
+        icon: 'fa-solid fa-list',
+        route: 'dashboard.categories',
+        visible: authStore.isAdmin
+    },
 ])
 const currentMenuItem = ref<DashboardMenuItem>(getActualCurrentMenuItem())
 

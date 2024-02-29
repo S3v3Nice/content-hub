@@ -101,6 +101,16 @@ const routes: RouteRecordRaw[] = [
                             title: 'Пользователи - Панель управления',
                         },
                 },
+                {
+                    path: 'categories',
+                    name: 'dashboard.categories',
+                    component: CategoriesDashboardSection,
+                    meta:
+                        {
+                            title: 'Категории - Панель управления',
+                            requiresAdmin: true,
+                        },
+                },
             ],
     },
     {

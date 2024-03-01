@@ -130,7 +130,7 @@ function save() {
         <div class="space-y-1">
             <label for="role" :class="{ 'p-error': errors['role'] }">Роль</label>
             <Dropdown
-                id="role"
+                input-id="role"
                 :options="userRoles"
                 option-label="label"
                 option-value="value"
@@ -150,7 +150,7 @@ function save() {
                 class="w-full"
                 :class="{ 'p-invalid': errors['first_name'] }"
                 aria-describedby="first-name-error"
-                autocomplete="first-name"
+                autocomplete="given-name"
             />
             <small class="p-error" id="first-name-error">{{ errors['first_name']?.[0] || '&nbsp;' }}</small>
         </div>
@@ -162,7 +162,7 @@ function save() {
                 class="w-full"
                 :class="{ 'p-invalid': errors['last_name'] }"
                 aria-describedby="last-name-error"
-                autocomplete="last-name"
+                autocomplete="family-name"
             />
             <small class="p-error" id="last-name-error">{{ errors['last_name']?.[0] || '&nbsp;' }}</small>
         </div>

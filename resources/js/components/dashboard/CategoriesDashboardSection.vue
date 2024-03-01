@@ -165,8 +165,15 @@ function onRecordSave() {
         <Column>
             <template #body="{ data }">
                 <div class="flex align-items-center gap-2">
-                    <Button icon="fa-solid fa-pen" outlined rounded @click="onEditClick(data)"/>
-                    <Button icon="fa-solid fa-trash" outlined rounded severity="danger" @click="onDeleteClick(data)"/>
+                    <Button icon="fa-solid fa-pen" outlined rounded @click="onEditClick(data)" title="Редактировать"/>
+                    <Button
+                        icon="fa-solid fa-trash"
+                        outlined
+                        rounded
+                        severity="danger"
+                        @click="onDeleteClick(data)"
+                        title="Удалить"
+                    />
                 </div>
             </template>
         </Column>

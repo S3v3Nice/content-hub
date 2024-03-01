@@ -92,7 +92,7 @@ function save() {
                 :class="{ 'p-invalid': errors['slug'] }"
                 aria-describedby="slug-error"
                 type="slug"
-                autocomplete="slug"
+                autocomplete="off"
             />
             <small class="p-error" id="slug-error">{{ errors['slug']?.[0] || '&nbsp;' }}</small>
         </div>
@@ -104,7 +104,7 @@ function save() {
                 class="w-full"
                 :class="{ 'p-invalid': errors['name'] }"
                 aria-describedby="name-error"
-                autocomplete="name"
+                autocomplete="off"
             />
             <small class="p-error" id="name-error">{{ errors['name']?.[0] || '&nbsp;' }}</small>
         </div>

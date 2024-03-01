@@ -209,6 +209,7 @@ function onRecordSave() {
                         icon="fa-solid fa-pen"
                         outlined
                         rounded
+                        title="Редактировать"
                         @click="onEditClick(data)"
                     />
                     <Button
@@ -217,6 +218,7 @@ function onRecordSave() {
                         outlined
                         rounded
                         severity="danger"
+                        title="Удалить"
                         @click="onDeleteClick(data)"
                     />
                 </div>

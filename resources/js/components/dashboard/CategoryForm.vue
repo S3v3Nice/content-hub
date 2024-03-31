@@ -4,7 +4,7 @@ import Button from 'primevue/button'
 import {ref} from 'vue'
 import axios, {type AxiosError} from 'axios'
 import {getErrorMessageByCode, ToastHelper} from '@/helpers'
-import {type PostCategory} from '@/types/postCategory'
+import {type PostCategory} from '@/types'
 import InputText from 'primevue/inputtext'
 
 interface ResponseData {

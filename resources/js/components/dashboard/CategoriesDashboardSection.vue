@@ -9,7 +9,7 @@ import axios, {type AxiosError} from 'axios'
 import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 import Dialog from 'primevue/dialog'
 import CategoryForm from '@/components/dashboard/CategoryForm.vue'
-import type {PostCategory} from '@/types/postCategory'
+import type {PostCategory} from '@/types'
 
 interface ResponseData {
     success: boolean

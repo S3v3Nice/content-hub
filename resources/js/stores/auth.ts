@@ -1,6 +1,6 @@
 import axios from 'axios'
 import {defineStore} from 'pinia'
-import {type User, UserRole} from '@/types/user'
+import {type User, UserRole} from '@/types'
 
 interface AuthUser {
     isAuthenticated: boolean

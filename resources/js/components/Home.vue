@@ -1,11 +1,9 @@
 <script setup lang='ts'>
-import BaseLayout from '@/components/layout/BaseLayout.vue'
+
 </script>
 
 <template>
-    <BaseLayout>
-        <p>Главная страница</p>
-    </BaseLayout>
+    <p>Главная страница</p>
 </template>
 
 <style scoped>

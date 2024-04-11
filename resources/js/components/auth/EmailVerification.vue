@@ -1,5 +1,4 @@
 <script setup lang='ts'>
-import BaseLayout from '@/components/layout/BaseLayout.vue'
 import {onMounted, ref} from 'vue'
 import axios from 'axios'
 import {useRoute} from 'vue-router'
@@ -28,20 +27,18 @@ function tryVerifyEmail() {
 </script>
 
 <template>
-    <BaseLayout>
-        <div class="flex items-center justify-center">
-            <ProgressSpinner v-if="isProcessing"/>
-            <div v-else>
-                <Message v-if="isSuccess" :closable="false" severity="success">
-                    {{ responseMessage || 'E-mail адрес успешно подтвержден.' }}
-                </Message>
-                <Message v-else :closable="false" severity="error">{{
-                        responseMessage || 'Неизвестная ошибка.'
-                    }}
-                </Message>
-            </div>
+    <div class="flex items-center justify-center">
+        <ProgressSpinner v-if="isProcessing"/>
+        <div v-else>
+            <Message v-if="isSuccess" :closable="false" severity="success">
+                {{ responseMessage || 'E-mail адрес успешно подтвержден.' }}
+            </Message>
+            <Message v-else :closable="false" severity="error">{{
+                    responseMessage || 'Неизвестная ошибка.'
+                }}
+            </Message>
         </div>
-    </BaseLayout>
+    </div>
 </template>
 
 <style scoped>

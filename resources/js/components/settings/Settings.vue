@@ -1,7 +1,6 @@
 <script setup lang='ts'>
-import BaseLayout from '@/components/layout/BaseLayout.vue'
 import type {MenuItem} from 'primevue/menuitem'
-import {onUpdated, ref} from 'vue'
+import {ref, watch} from 'vue'
 import TabMenu from 'primevue/tabmenu'
 import Skeleton from 'primevue/skeleton'
 import {useRoute} from 'vue-router'
@@ -14,7 +13,7 @@ const tabs = ref<MenuItem[]>([
 ])
 const activeTabIndex = ref(getActualActiveTabIndex())
 
-onUpdated(() => {
+watch(route, () => {
     activeTabIndex.value = getActualActiveTabIndex()
     isLoadingSection.value = false
 })
@@ -31,34 +30,32 @@ function onTabRouteLinkClick(item: MenuItem) {
 </script>
 
 <template>
-    <BaseLayout>
-        <div class="surface-overlay rounded-xl border">
-            <p class="text-3xl font-semibold p-4">Настройки</p>
-            <TabMenu class="pl-2 pr-2" :model="tabs" :active-index="activeTabIndex">
-                <template #item="{ item, props }">
+    <div class="surface-overlay rounded-xl border">
+        <p class="text-3xl font-semibold p-4">Настройки</p>
+        <TabMenu class="pl-2 pr-2" :model="tabs" :active-index="activeTabIndex">
+            <template #item="{ item, props }">
 
-                    <RouterLink v-bind="props.action" :to="{ name: item.route }" @click="onTabRouteLinkClick(item)" class="flex align-items-center gap-2">
-                        <span class="p-menuitem-icon" :class="item.icon" />
-                        <span class="p-menuitem-text text">
-                            {{ item.label }}
-                        </span>
-                    </RouterLink>
-                </template>
-            </TabMenu>
-        </div>
-        <div class="p-4 surface-overlay rounded-xl border mt-3">
-            <div class="settings-section-content">
-                <RouterView v-if="!isLoadingSection"/>
-                <div v-else>
-                    <Skeleton width="9rem" height="1.5rem" class="mb-1"></Skeleton>
-                    <Skeleton height="3rem" class="mb-7"></Skeleton>
-                    <Skeleton width="9rem" height="1.5rem" class="mb-1"></Skeleton>
-                    <Skeleton height="3rem" class="mb-7"></Skeleton>
-                    <Skeleton width="11rem" height="3rem"></Skeleton>
-                </div>
+                <RouterLink v-bind="props.action" :to="{ name: item.route }" @click="onTabRouteLinkClick(item)" class="flex align-items-center gap-2">
+                    <span class="p-menuitem-icon" :class="item.icon" />
+                    <span class="p-menuitem-text text">
+                        {{ item.label }}
+                    </span>
+                </RouterLink>
+            </template>
+        </TabMenu>
+    </div>
+    <div class="p-4 surface-overlay rounded-xl border mt-3">
+        <div class="settings-section-content">
+            <RouterView v-if="!isLoadingSection"/>
+            <div v-else>
+                <Skeleton width="9rem" height="1.5rem" class="mb-1"></Skeleton>
+                <Skeleton height="3rem" class="mb-7"></Skeleton>
+                <Skeleton width="9rem" height="1.5rem" class="mb-1"></Skeleton>
+                <Skeleton height="3rem" class="mb-7"></Skeleton>
+                <Skeleton width="11rem" height="3rem"></Skeleton>
             </div>
         </div>
-    </BaseLayout>
+    </div>
 </template>
 
 <style scoped>

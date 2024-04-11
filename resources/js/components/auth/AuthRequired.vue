@@ -3,7 +3,7 @@ import BaseLayout from '@/components/layout/BaseLayout.vue'
 import {useModalStore} from '@/stores/modal'
 import Message from 'primevue/message'
 
-useModalStore().setLoginVisible()
+useModalStore().auth = true
 </script>
 
 <template>

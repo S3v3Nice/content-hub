@@ -4,14 +4,10 @@ import {computed, nextTick, ref} from 'vue'
 import axios from 'axios'
 import useThemeManager from '@/theme-manager'
 import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
 import Avatar from 'primevue/avatar'
 import Menu from 'primevue/menu'
 import InputSwitch from 'primevue/inputswitch'
-import LoginForm from '@/components/auth/LoginForm.vue'
-import RegisterForm from '@/components/auth/RegisterForm.vue'
 import {useRouter} from 'vue-router'
-import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm.vue'
 import type {MenuItem} from 'primevue/menuitem'
 import {useModalStore} from '@/stores/modal'
 
@@ -55,13 +51,7 @@ const userMenuItems = computed<MenuItem[]>(() => [
         label: 'Войти',
         icon: 'fa-solid fa-arrow-right-to-bracket',
         visible: !authStore.isAuthenticated,
-        command: () => modalStore.setLoginVisible(),
-    },
-    {
-        label: 'Регистрация',
-        icon: 'fa-solid fa-user-plus',
-        visible: !authStore.isAuthenticated,
-        command: () => modalStore.setRegisterVisible(),
+        command: () => modalStore.auth = true,
     },
     {
         label: 'Выйти',
@@ -151,59 +141,6 @@ function logout() {
             </Component>
         </template>
     </Menu>
-
-    <Dialog
-        header="Вход"
-        position="top"
-        :visible="modalStore.isLogin"
-        :modal="true"
-        :draggable="false"
-        :dismissable-mask="true"
-        @update:visible="modalStore.setLoginVisible"
-        style="width: 30rem;"
-    >
-        <LoginForm
-            @switch-to-forgot-password="modalStore.setForgotPasswordVisible(true)"
-            @switch-to-register="modalStore.setRegisterVisible(true)"
-        />
-    </Dialog>
-
-    <Dialog
-        header="Сброс пароля"
-        position="top"
-        :visible="modalStore.isForgotPassword"
-        :modal="true"
-        :draggable="false"
-        :dismissable-mask="true"
-        @update:visible="modalStore.setForgotPasswordVisible"
-        style="width: 30rem;"
-    >
-        <template #header>
-            <div class="inline-flex items-center">
-                <Button
-                    icon="fa-solid fa-arrow-left"
-                    aria-label="Назад"
-                    class="p-dialog-header-icon"
-                    @click="modalStore.setLoginVisible()"
-                />
-                <span class="p-dialog-title">Сброс пароля</span>
-            </div>
-        </template>
-        <ForgotPasswordForm/>
-    </Dialog>
-
-    <Dialog
-        header="Регистрация"
-        position="top"
-        :visible="modalStore.isRegister"
-        :modal="true"
-        :draggable="false"
-        :dismissable-mask="true"
-        @update:visible="modalStore.setRegisterVisible"
-        style="width: 30rem;"
-    >
-        <RegisterForm @switch-to-login="modalStore.setLoginVisible()"/>
-    </Dialog>
 </template>
 
 <style scoped>

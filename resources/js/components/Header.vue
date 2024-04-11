@@ -14,8 +14,8 @@ import {useModalStore} from '@/stores/modal'
 const router = useRouter()
 const authStore = useAuthStore()
 const modalStore = useModalStore()
-const themeManager = ref(useThemeManager())
-const isLightTheme = computed(() => themeManager.value.isLight())
+const themeManager = useThemeManager()
+
 const userMenu = ref<Menu>()
 const userMenuItems = computed<MenuItem[]>(() => [
     {
@@ -41,8 +41,8 @@ const userMenuItems = computed<MenuItem[]>(() => [
     {
         label: 'Тёмная тема',
         icon: 'fa-regular fa-moon',
-        switchValue: !themeManager.value.isLight(),
-        command: () => themeManager.value.toggleTheme(),
+        switchValue: !themeManager.isLight(),
+        command: () => themeManager.toggleTheme(),
     },
     {
         separator: true,
@@ -88,7 +88,7 @@ function logout() {
     <div class="header surface-overlay p-2 lg:pl-0 lg:pr-0 border-b">
         <div class="page-container flex space-x-4 justify-between h-full">
             <RouterLink :to="{name: 'home'}">
-                <img v-if="isLightTheme" src="/images/logo.svg" alt="Logo" class="h-full">
+                <img v-if="themeManager.isLight()" src="/images/logo.svg" alt="Logo" class="h-full">
                 <img v-else src="/images/logo-dark.svg" alt="Logo" class="h-full">
             </RouterLink>
             <Button

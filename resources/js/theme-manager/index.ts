@@ -1,3 +1,5 @@
+import {reactive} from 'vue'
+
 class ThemeManager {
     private static readonly lightTheme = 'light'
     private static readonly darkTheme = 'dark'
@@ -51,7 +53,7 @@ class ThemeManager {
     }
 }
 
-const themeManager = new ThemeManager()
+const themeManager = reactive(new ThemeManager())
 
 export default function useThemeManager() {
     return themeManager

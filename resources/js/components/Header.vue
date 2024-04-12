@@ -1,6 +1,6 @@
 <script setup lang='ts'>
 import {useAuthStore} from '@/stores/auth'
-import {computed, nextTick, ref} from 'vue'
+import {computed, nextTick, onMounted, ref} from 'vue'
 import axios from 'axios'
 import useThemeManager from '@/theme-manager'
 import Button from 'primevue/button'
@@ -61,6 +61,14 @@ const userMenuItems = computed<MenuItem[]>(() => [
     },
 ])
 
+onMounted(() => {
+    document.addEventListener('scroll', onScroll)
+})
+
+function onScroll() {
+    userMenu.value?.hide()
+}
+
 function toggleUserMenu(event: Event) {
     userMenu.value!.toggle(event)
 }
@@ -85,7 +93,7 @@ function logout() {
 </script>
 
 <template>
-    <div class="header surface-overlay p-2 lg:pl-0 lg:pr-0 border-b">
+    <div class="header header-fixed surface-overlay p-2 lg:pl-0 lg:pr-0 border-b">
         <div class="page-container flex space-x-4 justify-between h-full">
             <RouterLink :to="{name: 'home'}">
                 <img v-if="themeManager.isLight()" src="/images/logo.svg" alt="Logo" class="h-full">
@@ -146,6 +154,14 @@ function logout() {
 <style scoped>
 .header {
     height: 3.5rem;
+}
+
+.header-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
 }
 
 .menu-item-icon {

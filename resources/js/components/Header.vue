@@ -29,6 +29,12 @@ const userMenuItems = computed<MenuItem[]>(() => [
         route: 'dashboard',
     },
     {
+        label: 'Создать материал',
+        icon: 'fa-solid fa-plus',
+        visible: authStore.isAuthenticated,
+        route: 'create-post',
+    },
+    {
         label: 'Настройки',
         icon: 'fa-solid fa-gear',
         visible: authStore.isAuthenticated,
@@ -93,7 +99,7 @@ function logout() {
 </script>
 
 <template>
-    <div class="header header-fixed surface-overlay p-2 lg:pl-0 lg:pr-0 border-b">
+    <div class="header-fixed surface-overlay p-2 lg:pl-0 lg:pr-0 border-b">
         <div class="page-container flex space-x-4 justify-between h-full">
             <RouterLink :to="{name: 'home'}">
                 <img v-if="themeManager.isLight()" src="/images/logo.svg" alt="Logo" class="h-full">
@@ -118,44 +124,40 @@ function logout() {
                 <Avatar :label="authStore.username![0]" shape="circle"/>
             </Button>
         </div>
-    </div>
 
-    <Menu
-        ref="userMenu"
-        id="user-menu"
-        :model="userMenuItems"
-        :popup="true"
-        @focus="() => nextTick(() => (userMenu!['focusedOptionIndex'] = -1))"
-    >
-        <template v-if="authStore.isAuthenticated" #start>
+        <Menu
+            ref="userMenu"
+            id="user-menu"
+            :model="userMenuItems"
+            :popup="true"
+            @focus="() => nextTick(() => (userMenu!['focusedOptionIndex'] = -1))"
+        >
+            <template v-if="authStore.isAuthenticated" #start>
             <span class="flex p-2 gap-2 items-center">
                 <Avatar size="large" :label="authStore.username![0]" shape="circle"/>
                 <span>{{ authStore.username }}</span>
             </span>
-        </template>
-        <template #item="{ item, props }">
-            <Component
-                :is="item.route ? 'RouterLink' : 'a'"
-                :to="{ name: item.route }"
-                class="flex space-x-5 justify-between"
-                v-bind="props.action"
-                @click.stop="invokeUserMenuCommand(item)"
-            >
-                <div>
-                    <span class="menu-item-icon" :class="item.icon"/>
-                    <span class="ml-2">{{ item.label }}</span>
-                </div>
-                <InputSwitch v-if="item.switchValue != undefined" :model-value="item.switchValue"></InputSwitch>
-            </Component>
-        </template>
-    </Menu>
+            </template>
+            <template #item="{ item, props }">
+                <Component
+                    :is="item.route ? 'RouterLink' : 'a'"
+                    :to="{ name: item.route }"
+                    class="flex space-x-5 justify-between"
+                    v-bind="props.action"
+                    @click.stop="invokeUserMenuCommand(item)"
+                >
+                    <div>
+                        <span class="menu-item-icon" :class="item.icon"/>
+                        <span class="ml-2">{{ item.label }}</span>
+                    </div>
+                    <InputSwitch v-if="item.switchValue != undefined" :model-value="item.switchValue"></InputSwitch>
+                </Component>
+            </template>
+        </Menu>
+    </div>
 </template>
 
 <style scoped>
-.header {
-    height: 3.5rem;
-}
-
 .header-fixed {
     position: fixed;
     top: 0;

@@ -10,6 +10,7 @@ import Dashboard from '@/components/dashboard/Dashboard.vue'
 import CategoriesDashboardSection from '@/components/dashboard/CategoriesDashboardSection.vue'
 import UsersDashboardSection from '@/components/dashboard/UsersDashboardSection.vue'
 import type {Component} from 'vue'
+import CreatePost from '@/components/post/CreatePost.vue'
 
 declare module 'vue-router' {
     interface RouteMeta {
@@ -112,6 +113,16 @@ const routes: RouteRecordRaw[] = [
                         },
                 },
             ],
+    },
+    {
+        path: '/create-post',
+        name: 'create-post',
+        component: CreatePost,
+        meta:
+            {
+                title: 'Создание материала',
+                requiresAuth: true,
+            },
     },
     {
         path: '/:pathMatch(.*)*',

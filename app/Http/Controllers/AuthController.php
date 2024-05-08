@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    use ApiJsonResponse;
+    use ApiJsonResponseTrait;
     use PasswordValidationRulesTrait;
     use UsernameValidationRulesTrait;
 

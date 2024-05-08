@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\MessageBag;
 
-trait ApiJsonResponse
+trait ApiJsonResponseTrait
 {
     private function successJsonResponse(array $data = []): JsonResponse
     {

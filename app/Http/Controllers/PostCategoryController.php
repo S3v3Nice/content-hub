@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 
 class PostCategoryController extends Controller
 {
-    use ApiJsonResponse;
+    use ApiJsonResponseTrait;
 
     public function get(Request $request): JsonResponse
     {

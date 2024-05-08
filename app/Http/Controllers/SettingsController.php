@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 class SettingsController extends Controller
 {
-    use ApiJsonResponse;
+    use ApiJsonResponseTrait;
     use PasswordValidationRulesTrait;
     use UsernameValidationRulesTrait;
 

@@ -22,8 +22,12 @@ import EditorVerticalMenu from '@/components/post/editor/EditorVerticalMenu.vue'
 import {EditorState} from 'prosemirror-state'
 import {Blockquote} from '@tiptap/extension-blockquote'
 import {Image} from '@tiptap/extension-image'
+import axios, {type AxiosError} from 'axios'
+import {getErrorMessageByCode, ToastHelper} from '@/helpers'
+import {useToast} from 'primevue/usetoast'
 
 const postCategoryStore = usePostCategoryStore()
+const toastHelper = new ToastHelper(useToast())
 const errors = ref<string[][]>([])
 const postVersion = ref<PostVersion>({})
 
@@ -89,9 +93,7 @@ const contentEditor = useEditor({
         Link.configure({
             openOnClick: 'whenNotEditable',
         }),
-        Image.configure({
-            inline: true,
-        }),
+        Image,
     ],
 })
 
@@ -208,6 +210,7 @@ const menuItems = computed<EditorMenuItem[]>(() => {
         icon: nodes['blockquote'].icon,
         shortcut: nodes['blockquote'].shortcut,
         isActive: contentEditor.value.isActive(nodes['blockquote'].name),
+        isVisible: !contentEditor.value.isActive('bulletList') && !contentEditor.value.isActive('orderedList'),
         callback: () => contentEditor.value?.chain().focus().toggleBlockquote().run(),
     }
 
@@ -230,6 +233,16 @@ const menuItems = computed<EditorMenuItem[]>(() => {
                 icon: nodes['orderedList'].icon,
                 shortcut: nodes['orderedList'].shortcut,
                 callback: () => contentEditor.value?.chain().focus().toggleOrderedList().run(),
+            },
+            {
+                displayName: nodes['image'].displayName,
+                icon: nodes['image'].icon,
+                shortcut: nodes['image'].shortcut,
+                callback: () => openImageDialog((image) => {
+                    uploadImage(image, (imageUrl) => {
+                        contentEditor.value?.chain().focus().setImage({src: imageUrl}).run()
+                    })
+                }),
             },
             {
                 displayName: nodes['codeBlock'].displayName,
@@ -374,6 +387,36 @@ function onLinkOverlayPanelShow() {
     currentLink.href = contentEditor.value?.getAttributes('link').href
 }
 
+function openImageDialog(callback: ((file: File) => void)) {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/jpeg, image/png, image/jpg'
+    input.style.display = 'none'
+    input.onchange = () => {
+        callback(input.files[0])
+    }
+    input.click()
+}
+
+function uploadImage(image: File, callback: ((url: string) => void)) {
+    errors.value = []
+
+    const formData = new FormData()
+    formData.append('image', image)
+
+    axios.post('/api/upload-image', formData).then((response) => {
+        if (response.data.success) {
+            callback(response.data.image_url)
+        } else {
+            if (response.data.errors) {
+                toastHelper.error(response.data.errors['image'][0])
+            }
+        }
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
+    })
+}
+
 function setLink() {
     const selection = contentEditor.value!.view!.state.selection
 
@@ -399,7 +442,7 @@ function unsetLink() {
     <BubbleMenu
         :editor="contentEditor"
         :tippy-options="{zIndex: 100, maxWidth: 'none'}"
-        v-if="contentEditor"
+        v-if="contentEditor && menuItems.length > 0"
         :update-delay="0"
         class="hidden lg:block"
     >

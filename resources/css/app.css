@@ -77,7 +77,7 @@
     font-weight: bold;
 }
 
-.post-content p, .post-content pre {
+.post-content p, .post-content pre, .post-content img {
     margin-top: 1.3em;
 }
 

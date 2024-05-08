@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PostCategoryController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UploadImageController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/settings/security/email-verification', [SettingsController::class, 'sendEmailVerificationLink'])->middleware(['throttle:1,1']);
 
     Route::get('/post-categories', [PostCategoryController::class, 'get']);
+
+    Route::post('/upload-image', [UploadImageController::class, 'upload']);
 
     Route::middleware('moderator')->group(function () {
         Route::get('/users', [UserController::class, 'get']);

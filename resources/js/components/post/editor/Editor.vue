@@ -25,6 +25,7 @@ import {Image} from '@tiptap/extension-image'
 import axios, {type AxiosError} from 'axios'
 import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
+import CoverUpload from '@/components/post/editor/CoverUpload.vue'
 
 const postCategoryStore = usePostCategoryStore()
 const toastHelper = new ToastHelper(useToast())
@@ -483,6 +484,7 @@ function unsetLink() {
             <div class="surface-overlay rounded-xl border mt-4">
                 <div class="m-4 lg:ml-10 lg:mr-10 space-y-4">
                     <EditorContent :editor="titleEditor"/>
+                    <CoverUpload @upload="(file) => postVersion.cover_file = file"/>
                 </div>
 
                 <div>

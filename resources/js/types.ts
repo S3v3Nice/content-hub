@@ -28,7 +28,8 @@ export interface PostVersion {
     submitter_id?: bigint | null
     assigned_moderator_id?: bigint | null
     category_id?: bigint | null
-    preview?: string
+    cover?: string
+    cover_file?: File
     title?: string
     description?: string
     content?: string

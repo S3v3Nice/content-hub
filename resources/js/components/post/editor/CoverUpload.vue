@@ -65,7 +65,7 @@ function uploadImage(file: File) {
 
 <template>
     <div
-        class="upload-area relative aspect-[16/9] rounded-md transition-all h-full cursor-pointer flex flex-col justify-center text-center"
+        class="upload-area post-cover relative aspect-[16/9] transition-all h-full cursor-pointer flex flex-col justify-center text-center"
         :class="{'empty': !imageSrc, 'dragover': isDraggingOver}"
         @click="onClick"
         @drop.prevent="onDrop"

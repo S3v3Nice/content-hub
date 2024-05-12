@@ -77,6 +77,10 @@
     font-weight: bold;
 }
 
+.post-cover, .post-content img {
+    border-radius: 0.375rem;
+}
+
 .post-content p, .post-content pre, .post-content img {
     margin-top: 1.3em;
 }

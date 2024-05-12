@@ -13,8 +13,9 @@ return new class extends Migration {
         Schema::create('post_versions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('author_id')
+                ->nullable()
                 ->constrained('users')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
             $table->foreignId('assigned_moderator_id')
                 ->nullable()
                 ->constrained('users')

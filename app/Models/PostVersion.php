@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * App\Models\PostVersion
  *
  * @property int $id
- * @property int $author_id
+ * @property int|null $author_id
  * @property int|null $assigned_moderator_id
  * @property int|null $post_id
  * @property int $category_id
@@ -22,28 +22,27 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property \App\Models\PostVersionStatus $status
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PostVersionAction> $actions
+ * @property-read int|null $actions_count
+ * @property-read \App\Models\User|null $assignedModerator
+ * @property-read \App\Models\User|null $author
+ * @property-read \App\Models\PostCategory $category
+ * @property-read \App\Models\Post|null $post
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion query()
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereAssignedModeratorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereAuthorId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereCategoryId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereContent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereCover($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion wherePostId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|PostVersion wherePreview($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereAuthorId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereCover($value)
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PostVersionAction> $actions
- * @property-read int|null $actions_count
- * @property-read \App\Models\User|null $assignedModerator
- * @property-read \App\Models\User $author
- * @property-read \App\Models\PostCategory $category
- * @property-read \App\Models\Post|null $post
  * @mixin \Eloquent
  */
 class PostVersion extends Model

@@ -19,7 +19,7 @@ return new class extends Migration {
                 ->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            $table->smallInteger('action');
+            $table->smallInteger('type');
             $table->json('details');
             $table->timestamps();
         });

@@ -23,14 +23,14 @@ Route::get('/auth/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/post-categories', [PostCategoryController::class, 'get']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/profile', [SettingsController::class, 'changeProfileSettings']);
     Route::put('/settings/security/username', [SettingsController::class, 'changeUsername']);
     Route::put('/settings/security/email', [SettingsController::class, 'changeEmail']);
     Route::put('/settings/security/password', [SettingsController::class, 'changePassword']);
     Route::post('/settings/security/email-verification', [SettingsController::class, 'sendEmailVerificationLink'])->middleware(['throttle:1,1']);
-
-    Route::get('/post-categories', [PostCategoryController::class, 'get']);
 
     Route::post('/upload-image', [UploadImageController::class, 'upload']);
 

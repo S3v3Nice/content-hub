@@ -4,16 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * App\Models\PostVersion
  *
  * @property int $id
- * @property int $submitter_id
+ * @property int $author_id
  * @property int|null $assigned_moderator_id
  * @property int|null $post_id
  * @property int $category_id
- * @property string $preview
+ * @property string $cover
  * @property string $title
  * @property string $description
  * @property string $content
@@ -32,9 +34,16 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion wherePostId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion wherePreview($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereSubmitterId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereAuthorId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PostVersion whereCover($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PostVersionAction> $actions
+ * @property-read int|null $actions_count
+ * @property-read \App\Models\User|null $assignedModerator
+ * @property-read \App\Models\User $author
+ * @property-read \App\Models\PostCategory $category
+ * @property-read \App\Models\Post|null $post
  * @mixin \Eloquent
  */
 class PostVersion extends Model
@@ -42,7 +51,7 @@ class PostVersion extends Model
     use HasFactory;
 
     protected $fillable = [
-        'preview',
+        'cover',
         'title',
         'description',
         'content',
@@ -52,4 +61,29 @@ class PostVersion extends Model
     protected $casts = [
         'status' => PostVersionStatus::class,
     ];
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
+    }
+
+    public function assignedModerator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_moderator_id');
+    }
+
+    public function post(): BelongsTo
+    {
+        return $this->belongsTo(Post::class, 'post_id');
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(PostCategory::class, 'category_id');
+    }
+
+    public function actions(): HasMany
+    {
+        return $this->hasMany(PostVersionAction::class, 'version_id');
+    }
 }

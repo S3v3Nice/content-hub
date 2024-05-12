@@ -25,7 +25,7 @@ export interface PostCategory {
 export interface PostVersion {
     id?: bigint
     post_id?: bigint | null
-    submitter_id?: bigint | null
+    author_id?: bigint | null
     assigned_moderator_id?: bigint | null
     category_id?: bigint | null
     cover?: string

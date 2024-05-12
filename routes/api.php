@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PostCategoryController;
+use App\Http\Controllers\PostVersionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UploadImageController;
 use App\Http\Controllers\UserController;
@@ -32,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/post-categories', [PostCategoryController::class, 'get']);
 
     Route::post('/upload-image', [UploadImageController::class, 'upload']);
+
+    Route::post('/post-versions', [PostVersionController::class, 'add']);
 
     Route::middleware('moderator')->group(function () {
         Route::get('/users', [UserController::class, 'get']);

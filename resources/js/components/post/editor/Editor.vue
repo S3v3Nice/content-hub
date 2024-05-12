@@ -27,10 +27,14 @@ import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
 import CoverUpload from '@/components/post/editor/CoverUpload.vue'
 
+defineExpose({
+    getPostVersion,
+})
+
 const postCategoryStore = usePostCategoryStore()
 const toastHelper = new ToastHelper(useToast())
 const errors = ref<string[][]>([])
-const postVersion = ref<PostVersion>({})
+const postVersion = reactive<PostVersion>({})
 
 const titleEditor = useEditor({
     enableInputRules: false,
@@ -400,8 +404,6 @@ function openImageDialog(callback: ((file: File) => void)) {
 }
 
 function uploadImage(image: File, callback: ((url: string) => void)) {
-    errors.value = []
-
     const formData = new FormData()
     formData.append('image', image)
 
@@ -436,6 +438,12 @@ function setLink() {
 function unsetLink() {
     contentEditor.value!.chain().focus().unsetLink().run()
     linkOverlayPanel.value?.hide()
+}
+
+function getPostVersion(): PostVersion {
+    postVersion.title = titleEditor.value!.getText().trim()
+    postVersion.content = contentEditor.value!.getHTML()
+    return postVersion
 }
 </script>
 

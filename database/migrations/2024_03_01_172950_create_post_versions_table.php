@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('post_versions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('submitter_id')
+            $table->foreignId('author_id')
                 ->constrained('users')
                 ->cascadeOnDelete();
             $table->foreignId('assigned_moderator_id')
@@ -26,7 +26,7 @@ return new class extends Migration {
             $table->foreignId('category_id')
                 ->constrained('post_categories')
                 ->cascadeOnDelete();
-            $table->string('preview');
+            $table->string('cover');
             $table->string('title');
             $table->string('description');
             $table->text('content');

@@ -4,7 +4,11 @@ import {ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
 
 const props = defineProps({
-    imageSrc: String
+    imageSrc: String,
+    editable: {
+        type: Boolean,
+        default: true
+    }
 })
 
 const emit = defineEmits<{
@@ -22,20 +26,36 @@ const minWidth = 768
 const minHeight = 432
 
 function onClick() {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = allowedFormats.join(', ')
-    input.onchange = () => {
-        uploadImage(input.files[0])
+    if (props.editable) {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = allowedFormats.join(', ')
+        input.onchange = () => {
+            uploadImage(input.files![0])
+        }
+        input.click()
     }
-    input.click()
 }
 
 function onDrop(event: DragEvent) {
-    if (event.dataTransfer.files) {
-        uploadImage(event.dataTransfer.files[0])
+    if (props.editable) {
+        if (event.dataTransfer?.files) {
+            uploadImage(event.dataTransfer.files[0])
+        }
+        isDraggingOver.value = false
     }
-    isDraggingOver.value = false
+}
+
+function onDragEnter() {
+    if (props.editable) {
+        isDraggingOver.value = true
+    }
+}
+
+function onDragLeave() {
+    if (props.editable) {
+        isDraggingOver.value = false
+    }
 }
 
 function uploadImage(file: File) {
@@ -65,18 +85,18 @@ function uploadImage(file: File) {
 
 <template>
     <div
-        class="upload-area post-cover relative aspect-[16/9] transition-all h-full cursor-pointer flex flex-col justify-center text-center"
-        :class="{'empty': !imageSrc, 'dragover': isDraggingOver}"
+        class="upload-area post-cover relative aspect-[16/9] transition-all h-full flex flex-col justify-center text-center"
+        :class="{'editable': editable, 'cursor-pointer': editable, 'empty': !imageSrc, 'dragover': isDraggingOver}"
         @click="onClick"
         @drop.prevent="onDrop"
         @dragover.prevent
-        @dragenter.prevent="isDraggingOver = true"
-        @dragleave="isDraggingOver = false"
+        @dragenter.prevent="onDragEnter"
+        @dragleave="onDragLeave"
     >
         <img
             v-if="imageSrc"
             :src="imageSrc"
-            alt
+            alt=""
             class="w-full h-full object-cover object-center"
             style="border-radius: inherit;"
         />
@@ -113,14 +133,14 @@ function uploadImage(file: File) {
     }
 }
 
-.upload-area:not(.empty):hover, .upload-area:not(.empty).dragover {
+.upload-area.editable:not(.empty):hover, .upload-area:not(.empty).dragover {
     .upload-hint {
         opacity: 1;
     }
 }
 
 /* Darkening when hovering/dragging over the cover upload area */
-.upload-area::before {
+.upload-area.editable::before {
     content: '';
     position: absolute;
     width: 100%;
@@ -131,11 +151,11 @@ function uploadImage(file: File) {
     transition: opacity 0.3s ease;
 }
 
-.upload-area:not(.empty)::before {
+.upload-area.editable:not(.empty)::before {
     background-color: rgba(0, 0, 0, 0.65);
 }
 
-.upload-area:hover::before, .upload-area.dragover::before {
+.upload-area.editable:hover::before, .upload-area.dragover::before {
     opacity: 1;
 }
 </style>

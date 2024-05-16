@@ -12,7 +12,7 @@ defineProps({
     }
 })
 
-const verticalMenus = reactive<{ [key: string]: typeof EditorVerticalMenu }>({})
+const verticalMenus = reactive<{ [key: string]: InstanceType<typeof EditorVerticalMenu> }>({})
 
 document.addEventListener('scroll', onScroll)
 
@@ -54,7 +54,7 @@ function getItemTooltip(item: EditorMenuItem): TooltipOptions {
 
                 <template v-else-if="menuItem.children">
                     <EditorVerticalMenu
-                        :ref="(val: typeof EditorVerticalMenu) => verticalMenus[`editor-vertical-menu-${id}`] = val"
+                        :ref="(val: InstanceType<typeof EditorVerticalMenu>) => verticalMenus[`editor-vertical-menu-${id}`] = val"
                         :id="`editor-vertical-menu-${id}`"
                         :items="menuItem.children"
                         :title="menuItem.displayName"

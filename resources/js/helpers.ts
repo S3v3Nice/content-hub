@@ -1,8 +1,10 @@
 import type {ToastServiceMethods} from 'primevue/toastservice'
+import {PostVersionStatus} from '@/types'
 
 interface ImportMeta {
     env: {
         VITE_APP_NAME: string
+        VITE_APP_URL: string
     }
 }
 
@@ -18,6 +20,31 @@ export function getErrorMessageByCode(code: number) {
             return 'Слишком много запросов. Повторите позже.'
         default:
             return ''
+    }
+}
+
+export function getPostVersionStatusInfo(status: PostVersionStatus) {
+    switch (status) {
+        case PostVersionStatus.DRAFT:
+            return {
+                name: 'Черновик',
+                severity: 'secondary'
+            }
+        case PostVersionStatus.PENDING:
+            return {
+                name: 'На рассмотрении',
+                severity: 'info'
+            }
+        case PostVersionStatus.ACCEPTED:
+            return {
+                name: 'Принято',
+                severity: 'success'
+            }
+        case PostVersionStatus.REJECTED:
+            return {
+                name: 'Отклонено',
+                severity: 'danger'
+            }
     }
 }
 

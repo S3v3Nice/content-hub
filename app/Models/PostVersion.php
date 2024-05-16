@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Storage;
 
 /**
  * App\Models\PostVersion
@@ -60,6 +61,15 @@ class PostVersion extends Model
     protected $casts = [
         'status' => PostVersionStatus::class,
     ];
+
+    protected $appends = [
+        'cover_url'
+    ];
+
+    public function getCoverUrlAttribute(): string
+    {
+        return url(Storage::url($this->cover));
+    }
 
     public function author(): BelongsTo
     {

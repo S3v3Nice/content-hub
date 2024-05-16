@@ -11,6 +11,7 @@ import CategoriesDashboardSection from '@/components/dashboard/CategoriesDashboa
 import UsersDashboardSection from '@/components/dashboard/UsersDashboardSection.vue'
 import type {Component} from 'vue'
 import CreatePost from '@/components/post/CreatePost.vue'
+import ReviewPost from '@/components/post/ReviewPost.vue'
 
 declare module 'vue-router' {
     interface RouteMeta {
@@ -122,6 +123,18 @@ const routes: RouteRecordRaw[] = [
             {
                 title: 'Создание материала',
                 requiresAuth: true,
+            },
+    },
+    {
+        path: '/review-post/:id',
+        name: 'review-post',
+        props: ({params}) => ({id: Number.parseInt(params.id as string, 10) || 0}),
+        component: ReviewPost,
+        meta:
+            {
+                title: 'Проверка материала',
+                requiresAuth: true,
+                requiresModerator: true,
             },
     },
     {

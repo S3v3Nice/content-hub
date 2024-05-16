@@ -48,6 +48,7 @@ export interface PostVersion {
     category_id?: bigint
     category?: PostCategory
     cover?: string
+    cover_url?: string
     cover_file?: File
     title?: string
     description?: string

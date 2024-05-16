@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import InputText from 'primevue/inputtext'
-import {computed, onUnmounted, reactive, ref} from 'vue'
+import {computed, onUnmounted, type PropType, reactive, ref} from 'vue'
 import type {EditorMenuItem, EditorNodeInfo, PostVersion} from '@/types'
 import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
@@ -27,6 +27,18 @@ import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
 import CoverUpload from '@/components/post/editor/CoverUpload.vue'
 
+const props = defineProps({
+    editorTitle: {
+        type: String,
+        required: true,
+    },
+    postVersion: Object as PropType<PostVersion>,
+    editable: {
+        type: Boolean,
+        default: true
+    }
+})
+
 defineExpose({
     getPostVersion,
 })
@@ -34,9 +46,10 @@ defineExpose({
 const postCategoryStore = usePostCategoryStore()
 const toastHelper = new ToastHelper(useToast())
 const errors = ref<string[][]>([])
-const postVersion = reactive<PostVersion>({})
+const postVersion = reactive<PostVersion>(props.postVersion || {})
 
 const titleEditor = useEditor({
+    editable: props.editable,
     enableInputRules: false,
     editorProps: {
         attributes: {
@@ -59,9 +72,14 @@ const titleEditor = useEditor({
             placeholder: 'Название материала',
         }),
     ],
+    content: postVersion.title ?? '',
+    onUpdate: ({editor}) => {
+        postVersion.title = editor.getText()
+    },
 })
 
 const contentEditor = useEditor({
+    editable: props.editable,
     editorProps: {
         attributes: {
             class: 'post-content focus:outline-none min-h-[25rem] m-4 lg:ml-10 lg:mr-10',
@@ -100,6 +118,10 @@ const contentEditor = useEditor({
         }),
         Image,
     ],
+    content: postVersion.content ?? '',
+    onUpdate: ({editor}) => {
+        postVersion.content = editor.getHTML()
+    },
 })
 
 const nodes: { [key: string]: EditorNodeInfo } = {
@@ -329,7 +351,7 @@ const menuItems = computed<EditorMenuItem[]>(() => {
     return items
 })
 
-const addNodeMenu = ref<typeof EditorVerticalMenu>()
+const addNodeMenu = ref<InstanceType<typeof EditorVerticalMenu>>()
 
 const linkOverlayPanel = ref<OverlayPanel>()
 const currentLink = reactive({
@@ -398,7 +420,7 @@ function openImageDialog(callback: ((file: File) => void)) {
     input.accept = 'image/jpeg, image/png, image/jpg'
     input.style.display = 'none'
     input.onchange = () => {
-        callback(input.files[0])
+        callback(input.files![0])
     }
     input.click()
 }
@@ -441,8 +463,6 @@ function unsetLink() {
 }
 
 function getPostVersion(): PostVersion {
-    postVersion.title = titleEditor.value!.getText().trim()
-    postVersion.content = contentEditor.value!.getHTML()
     return postVersion
 }
 </script>
@@ -451,7 +471,7 @@ function getPostVersion(): PostVersion {
     <BubbleMenu
         :editor="contentEditor"
         :tippy-options="{zIndex: 100, maxWidth: 'none'}"
-        v-if="contentEditor && menuItems.length > 0"
+        v-if="contentEditor && editable && menuItems.length > 0"
         :update-delay="0"
         class="hidden lg:block"
     >
@@ -464,7 +484,7 @@ function getPostVersion(): PostVersion {
     <FloatingMenu
         :editor="contentEditor"
         :tippy-options="{ placement: 'left', offset: [0, 0], zIndex: 100 }"
-        v-if="contentEditor"
+        v-if="contentEditor && editable"
         :should-show="({state}) => isAtEmptyRootParagraph(state)"
         class="hidden lg:block"
     >
@@ -486,13 +506,17 @@ function getPostVersion(): PostVersion {
     <div class="grid lg:grid-cols-[1fr,19rem] gap-4">
         <div class="min-w-0">
             <div class="surface-overlay rounded-xl p-4 border">
-                <p class="text-2xl font-semibold flex text-center">Создание материала</p>
+                <p class="text-2xl font-semibold flex text-center">{{ editorTitle }}</p>
             </div>
 
             <div class="surface-overlay rounded-xl border mt-4">
                 <div class="m-4 lg:ml-10 lg:mr-10 space-y-4">
                     <EditorContent :editor="titleEditor"/>
-                    <CoverUpload @upload="(file) => postVersion.cover_file = file"/>
+                    <CoverUpload
+                        :image-src="postVersion.cover_url"
+                        @upload="(file) => postVersion.cover_file = file"
+                        :editable="editable"
+                    />
                 </div>
 
                 <div>
@@ -512,6 +536,7 @@ function getPostVersion(): PostVersion {
                 <div class="space-y-1">
                     <label for="category" :class="{ 'p-error': errors['category'] }">Категория</label>
                     <Dropdown
+                        :disabled="!editable"
                         input-id="category"
                         :options="postCategoryStore.categories"
                         option-label="name"
@@ -528,6 +553,7 @@ function getPostVersion(): PostVersion {
                 <div class="space-y-1">
                     <label for="description" :class="{ 'p-error': errors['description'] }">Описание</label>
                     <Textarea
+                        :disabled="!editable"
                         id="description"
                         v-model="postVersion.description"
                         rows="3"

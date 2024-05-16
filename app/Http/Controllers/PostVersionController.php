@@ -4,15 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\PostCategory;
 use App\Models\PostVersion;
-use App\Models\PostVersionAction;
-use App\Models\PostVersionActionType;
 use App\Models\PostVersionStatus;
+use App\Services\Dto\NewPostVersionDto;
+use App\Services\Dto\PostVersionUpdateDto;
+use App\Services\PostVersionService;
 use Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
+use Illuminate\Validation\Validator as ValidatorInstance;
 
 class PostVersionController extends Controller
 {
@@ -22,49 +24,200 @@ class PostVersionController extends Controller
     const MIN_COVER_WIDTH = 768;
     const MIN_COVER_HEIGHT = 432;
 
-    public function add(Request $request): JsonResponse
+    public function __construct(private readonly PostVersionService $postVersionService)
     {
-        $validator = Validator::make($request->all(), [
-            'category_id' => ['required', 'integer', Rule::exists(PostCategory::class, 'id')],
-            'cover_file' => [
-                'required',
-                File::types(['jpeg', 'jpg', 'png']),
-                File::image()
-                    ->max(self::MAX_COVER_SIZE_MB * 1024)
-                    ->dimensions(
-                        Rule::dimensions()
-                            ->minWidth(self::MIN_COVER_WIDTH)
-                            ->minHeight(self::MIN_COVER_HEIGHT)
-                    ),
-            ],
-            'title' => ['required', 'string'],
-            'description' => ['required', 'string'],
-            'content' => ['required', 'string'],
-        ]);
+    }
 
+    public function getById(int $id): JsonResponse
+    {
+        return response()->json(PostVersion::with(['author', 'post', 'category'])->find($id));
+    }
+
+    public function createDraft(Request $request): JsonResponse
+    {
+        $validator = $this->getNewPostVersionValidator($request->all());
         if ($validator->fails()) {
             return $this->errorJsonResponse('', $validator->errors());
         }
 
-        $image = $request->file('cover_file');
-        $imagePath = $image->storeAs('public/images', $image->hashName());
-        $publicImagePath = substr_replace($imagePath, 'storage/', 0, strlen('public/'));
-
-        $user = Auth::user();
-
-        $postVersion = PostVersion::make($request->only(['title', 'description', 'content']));
-        $postVersion->cover = $publicImagePath;
-        $postVersion->status = PostVersionStatus::Pending;
-        $postVersion->author()->associate($user);
-        $postVersion->category()->associate(PostCategory::find($request->get('category_id')));
-        $postVersion->save();
-
-        $submitAction = PostVersionAction::make();
-        $submitAction->action = PostVersionActionType::Submit;
-        $submitAction->version()->associate($postVersion);
-        $submitAction->user()->associate($user);
-        $submitAction->save();
+        $this->postVersionService->createDraft(
+            new NewPostVersionDto(
+                Auth::user(),
+                PostCategory::find($request->integer('category_id')),
+                $request->string('title'),
+                $request->file('cover_file'),
+                $request->string('description'),
+                $request->string('content'),
+            )
+        );
 
         return $this->successJsonResponse();
+    }
+
+    public function submitNew(Request $request): JsonResponse
+    {
+        $validator = $this->getNewPostVersionValidator($request->all());
+        if ($validator->fails()) {
+            return $this->errorJsonResponse('', $validator->errors());
+        }
+
+        $this->postVersionService->submitNew(
+            new NewPostVersionDto(
+                Auth::user(),
+                PostCategory::find($request->integer('category_id')),
+                $request->string('title'),
+                $request->file('cover_file'),
+                $request->string('description'),
+                $request->string('content'),
+            )
+        );
+
+        return $this->successJsonResponse();
+    }
+
+    public function requestChanges(Request $request, int $id): JsonResponse
+    {
+        $validator = $this->getPostVersionUpdateValidator($request->all(), [
+            'details' => ['required', 'array'],
+            'details.message' => ['required', 'string'],
+        ]);
+        if ($validator->fails()) {
+            return $this->errorJsonResponse('', $validator->errors());
+        }
+
+        $postVersion = PostVersion::find($id);
+        if ($postVersion === null) {
+            return $this->errorJsonResponse("Не найдена версия материала с id $id.");
+        }
+        if ($postVersion->status !== PostVersionStatus::Pending) {
+            return $this->errorJsonResponse("Эту версию материала нельзя вернуть на доработку из-за её статуса.");
+        }
+
+        $this->postVersionService->requestChanges(
+            $postVersion,
+            new PostVersionUpdateDto(
+                PostCategory::find($request->integer('category_id', null)),
+                $request->string('title'),
+                $request->file('cover_file'),
+                $request->string('description'),
+                $request->string('content'),
+                $request->input('details'),
+            )
+        );
+
+        return $this->successJsonResponse();
+    }
+
+    public function accept(Request $request, int $id): JsonResponse
+    {
+        $validator = $this->getPostVersionUpdateValidator($request->all(), [
+            'slug' => ['string'],
+        ]);
+        if ($validator->fails()) {
+            return $this->errorJsonResponse('', $validator->errors());
+        }
+
+        $postVersion = PostVersion::find($id);
+        if ($postVersion === null) {
+            return $this->errorJsonResponse("Не найдена версия материала с id $id.");
+        }
+        if ($postVersion->status !== PostVersionStatus::Pending) {
+            return $this->errorJsonResponse("Эту версию материала нельзя принять из-за её статуса.");
+        }
+
+        $this->postVersionService->accept(
+            $postVersion,
+            new PostVersionUpdateDto(
+                PostCategory::find($request->integer('category_id', null)),
+                $request->string('title'),
+                $request->file('cover_file'),
+                $request->string('description'),
+                $request->string('content'),
+                null,
+                $request->string('slug')
+            )
+        );
+
+        return $this->successJsonResponse();
+    }
+
+    public function reject(Request $request, int $id): JsonResponse
+    {
+        $validator = $this->getPostVersionUpdateValidator($request->all(), [
+            'details' => ['required', 'array'],
+            'details.reason' => ['required', 'string'],
+        ]);
+        if ($validator->fails()) {
+            return $this->errorJsonResponse('', $validator->errors());
+        }
+
+        $postVersion = PostVersion::find($id);
+        if ($postVersion === null) {
+            return $this->errorJsonResponse("Не найдена версия материала с id $id.");
+        }
+        if ($postVersion->status !== PostVersionStatus::Pending) {
+            return $this->errorJsonResponse("Эту версию материала нельзя отклонить из-за её статуса.");
+        }
+
+        $this->postVersionService->reject(
+            $postVersion,
+            new PostVersionUpdateDto(
+                PostCategory::find($request->integer('category_id', null)),
+                $request->string('title'),
+                $request->file('cover_file'),
+                $request->string('description'),
+                $request->string('content'),
+                $request->input('details'),
+            )
+        );
+
+        return $this->successJsonResponse();
+    }
+
+    private function getNewPostVersionValidator(array $data, array $additionalRules = []): ValidatorInstance
+    {
+        return Validator::make($data, array_merge(
+            [
+                'category_id' => ['required', 'integer', Rule::exists(PostCategory::class, 'id')],
+                'cover_file' => [
+                    'required',
+                    File::types(['jpeg', 'jpg', 'png']),
+                    File::image()
+                        ->max(self::MAX_COVER_SIZE_MB * 1024)
+                        ->dimensions(
+                            Rule::dimensions()
+                                ->minWidth(self::MIN_COVER_WIDTH)
+                                ->minHeight(self::MIN_COVER_HEIGHT)
+                        ),
+                ],
+                'title' => ['required', 'string', 'max:150'],
+                'description' => ['required', 'string', 'max:255'],
+                'content' => ['required', 'string', 'max:65535'],
+            ],
+            $additionalRules
+        ));
+    }
+
+    private function getPostVersionUpdateValidator(array $data, array $additionalRules = []): ValidatorInstance
+    {
+        return Validator::make($data, array_merge(
+            [
+                'category_id' => ['integer', Rule::exists(PostCategory::class, 'id')],
+                'cover_file' => [
+                    File::types(['jpeg', 'jpg', 'png']),
+                    File::image()
+                        ->max(self::MAX_COVER_SIZE_MB * 1024)
+                        ->dimensions(
+                            Rule::dimensions()
+                                ->minWidth(self::MIN_COVER_WIDTH)
+                                ->minHeight(self::MIN_COVER_HEIGHT)
+                        ),
+                ],
+                'title' => ['string', 'max:150'],
+                'description' => ['string', 'max:255'],
+                'content' => ['string', 'max:65535'],
+            ],
+            $additionalRules
+        ));
     }
 }

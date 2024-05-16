@@ -23,11 +23,11 @@ export interface PostCategory {
 }
 
 export interface Post {
-    id?: bigint
-    slug?: string
+    id: bigint
+    slug: string
     version?: PostVersion
-    created_at?: string
-    updated_at?: string
+    created_at: string
+    updated_at: string
 }
 
 export enum PostVersionStatus {

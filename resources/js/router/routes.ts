@@ -12,6 +12,7 @@ import UsersDashboardSection from '@/components/dashboard/UsersDashboardSection.
 import type {Component} from 'vue'
 import CreatePost from '@/components/post/CreatePost.vue'
 import ReviewPost from '@/components/post/ReviewPost.vue'
+import Post from '@/components/post/Post.vue'
 
 declare module 'vue-router' {
     interface RouteMeta {
@@ -135,6 +136,16 @@ const routes: RouteRecordRaw[] = [
                 title: 'Проверка материала',
                 requiresAuth: true,
                 requiresModerator: true,
+            },
+    },
+    {
+        path: '/post/:slug',
+        name: 'post',
+        props: true,
+        component: Post,
+        meta:
+            {
+                title: 'Материал',
             },
     },
     {

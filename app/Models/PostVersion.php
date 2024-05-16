@@ -28,6 +28,7 @@ use Storage;
  * @property-read \App\Models\User|null $assignedModerator
  * @property-read \App\Models\User|null $author
  * @property-read \App\Models\PostCategory $category
+ * @property-read string $cover_url
  * @property-read \App\Models\Post|null $post
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersion newQuery()
@@ -63,7 +64,7 @@ class PostVersion extends Model
     ];
 
     protected $appends = [
-        'cover_url'
+        'cover_url',
     ];
 
     public function getCoverUrlAttribute(): string

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PostCategoryController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostVersionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UploadImageController;
@@ -24,6 +25,8 @@ Route::get('/auth/user', function (Request $request) {
 });
 
 Route::get('/post-categories', [PostCategoryController::class, 'get']);
+
+Route::get('/posts/{slug}', [PostController::class, 'getBySlug']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/profile', [SettingsController::class, 'changeProfileSettings']);

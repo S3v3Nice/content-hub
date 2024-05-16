@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $slug
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\PostVersion $version
  * @method static \Illuminate\Database\Eloquent\Builder|Post newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Post newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Post query()
@@ -28,4 +29,17 @@ class Post extends Model
     protected $fillable = [
         'slug',
     ];
+
+    protected $appends = [
+        'version'
+    ];
+
+    public function getVersionAttribute(): PostVersion
+    {
+        return PostVersion::wherePostId($this->id)
+            ->whereStatus(PostVersionStatus::Accepted)
+            ->orderBy('id', 'desc')
+            ->with(['author', 'category'])
+            ->first();
+    }
 }

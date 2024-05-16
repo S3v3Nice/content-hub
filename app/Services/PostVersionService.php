@@ -57,6 +57,7 @@ class PostVersionService
         }
 
         $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Accepted);
+        $postVersion->post->touch();
 
         $this->postVersionActionService->create(new PostVersionActionDto(
             $postVersion,

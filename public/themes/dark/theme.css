@@ -5,5 +5,6 @@
 :root {
     --text-color: #dddddd;
     --surface-border: #35353a;
+    --highlight-text-color: #818cf8;
     color: var(--text-color)
 }

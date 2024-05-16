@@ -85,7 +85,7 @@ function uploadImage(file: File) {
 
 <template>
     <div
-        class="upload-area post-cover relative aspect-[16/9] transition-all h-full flex flex-col justify-center text-center"
+        class="upload-area post-cover relative transition-all h-full flex flex-col justify-center text-center"
         :class="{'editable': editable, 'cursor-pointer': editable, 'empty': !imageSrc, 'dragover': isDraggingOver}"
         @click="onClick"
         @drop.prevent="onDrop"
@@ -97,7 +97,7 @@ function uploadImage(file: File) {
             v-if="imageSrc"
             :src="imageSrc"
             alt=""
-            class="w-full h-full object-cover object-center"
+            class="w-full h-full"
             style="border-radius: inherit;"
         />
 

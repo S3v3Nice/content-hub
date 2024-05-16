@@ -26,6 +26,7 @@ Route::get('/auth/user', function (Request $request) {
 
 Route::get('/post-categories', [PostCategoryController::class, 'get']);
 
+Route::get('/posts', [PostController::class, 'get']);
 Route::get('/posts/{slug}', [PostController::class, 'getBySlug']);
 
 Route::middleware('auth:sanctum')->group(function () {

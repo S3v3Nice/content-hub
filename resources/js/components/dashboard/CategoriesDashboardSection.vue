@@ -3,7 +3,6 @@ import {useToast} from 'primevue/usetoast'
 import DataTable, {type DataTablePageEvent, type DataTableSortEvent} from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import Toolbar from 'primevue/toolbar'
 import {ref} from 'vue'
 import axios, {type AxiosError} from 'axios'
 import {getErrorMessageByCode, ToastHelper} from '@/helpers'
@@ -129,24 +128,24 @@ function onRecordSave() {
 </script>
 
 <template>
-    <Toolbar class="mb-4">
-        <template #start>
-            <Button
-                label="Добавить"
-                icon="fa-solid fa-plus"
-                severity="success"
-                class="mr-2"
-                @click="() => isAddRecordModal = true"
-            />
-            <Button
-                label="Удалить"
-                icon="fa-solid fa-trash"
-                severity="danger"
-                @click="() => isDeleteSelectedModal = true"
-                :disabled="selectedRecords.length === 0"
-            />
-        </template>
-    </Toolbar>
+    <div class="flex mb-4">
+        <Button
+            title="Добавить"
+            size="small"
+            icon="fa-solid fa-plus"
+            severity="success"
+            class="mr-2"
+            @click="() => isAddRecordModal = true"
+        />
+        <Button
+            title="Удалить"
+            size="small"
+            icon="fa-solid fa-trash"
+            severity="danger"
+            @click="() => isDeleteSelectedModal = true"
+            :disabled="selectedRecords.length === 0"
+        />
+    </div>
     <DataTable
         :value="records"
         lazy

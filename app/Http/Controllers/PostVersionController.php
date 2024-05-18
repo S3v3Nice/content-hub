@@ -81,7 +81,7 @@ class PostVersionController extends Controller
             return $this->errorJsonResponse('', $validator->errors());
         }
 
-        $this->postVersionService->createDraft(
+        $postVersion = $this->postVersionService->createDraft(
             new NewPostVersionDto(
                 Auth::user(),
                 PostCategory::find($request->integer('category_id')),
@@ -92,7 +92,9 @@ class PostVersionController extends Controller
             )
         );
 
-        return $this->successJsonResponse();
+        return $this->successJsonResponse([
+            'id' => $postVersion->id
+        ]);
     }
 
     public function submitNew(Request $request): JsonResponse
@@ -102,7 +104,7 @@ class PostVersionController extends Controller
             return $this->errorJsonResponse('', $validator->errors());
         }
 
-        $this->postVersionService->submitNew(
+        $postVersion = $this->postVersionService->submitNew(
             new NewPostVersionDto(
                 Auth::user(),
                 PostCategory::find($request->integer('category_id')),
@@ -113,7 +115,9 @@ class PostVersionController extends Controller
             )
         );
 
-        return $this->successJsonResponse();
+        return $this->successJsonResponse([
+            'id' => $postVersion->id
+        ]);
     }
 
     public function requestChanges(Request $request, int $id): JsonResponse

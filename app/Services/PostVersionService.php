@@ -21,12 +21,12 @@ class PostVersionService
     {
     }
 
-    public function createDraft(NewPostVersionDto $dto): void
+    public function createDraft(NewPostVersionDto $dto): PostVersion
     {
-        $this->createPostVersion($dto, PostVersionStatus::Draft);
+        return $this->createPostVersion($dto, PostVersionStatus::Draft);
     }
 
-    public function submitNew(NewPostVersionDto $dto): void
+    public function submitNew(NewPostVersionDto $dto): PostVersion
     {
         $postVersion = $this->createPostVersion($dto, PostVersionStatus::Pending);
 
@@ -35,6 +35,8 @@ class PostVersionService
             Auth::user(),
             PostVersionActionType::Submit
         ));
+
+        return $postVersion;
     }
 
     public function requestChanges(PostVersion $postVersion, PostVersionUpdateDto $dto): void

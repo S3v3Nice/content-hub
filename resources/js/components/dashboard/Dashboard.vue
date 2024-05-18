@@ -1,4 +1,4 @@
-<script setup lang='ts'>
+<script setup lang="ts">
 import {computed, ref, watch} from 'vue'
 import Skeleton from 'primevue/skeleton'
 import {useRoute} from 'vue-router'
@@ -28,6 +28,11 @@ const menuItems = ref<DashboardMenuItem[]>([
         icon: 'fa-solid fa-list',
         route: 'dashboard.categories',
         visible: authStore.isAdmin
+    },
+    {
+        label: 'Заявки на публикацию',
+        icon: 'fa-solid fa-newspaper',
+        route: 'dashboard.post-submissions',
     },
 ])
 const currentMenuItem = ref<DashboardMenuItem>(getActualCurrentMenuItem())
@@ -74,7 +79,7 @@ const visibleMenuItems = computed<DashboardMenuItem[]>(() => {
     </div>
 
     <div class="flex gap-4 items-start">
-        <div class="lg:block dashboard-menu-width surface-overlay rounded-xl border"
+        <div class="lg:block w-full lg:w-[18rem] surface-overlay rounded-xl border"
              :class="{ 'hidden': !isMobileMenuShown, 'block': isMobileMenuShown }"
         >
             <p class="text-xl font-semibold p-3">Панель управления</p>
@@ -87,14 +92,14 @@ const visibleMenuItems = computed<DashboardMenuItem[]>(() => {
                     @click="onSectionSelect(item)"
                 >
                     <Button class="w-full gap-2" plain :text="item !== currentMenuItem">
-                        <span class="menu-item-icon" :class="item.icon"/>
+                        <span class="w-[20px]" :class="item.icon"/>
                         <p>{{ item.label }}</p>
                     </Button>
                 </Component>
             </div>
         </div>
 
-        <div class="lg:block p-4 surface-overlay rounded-xl border flex-1" style="overflow: auto;"
+        <div class="lg:block p-4 surface-overlay rounded-xl border flex-1 overflow-x-auto"
              :class="{ 'hidden': isMobileMenuShown, 'block': !isMobileMenuShown }"
         >
             <RouterView v-if="!isLoadingSection"/>
@@ -110,15 +115,5 @@ const visibleMenuItems = computed<DashboardMenuItem[]>(() => {
 </template>
 
 <style scoped>
-.dashboard-menu-width {
-    width: 100%;
 
-    @screen lg {
-        width: 18rem;
-    }
-}
-
-.menu-item-icon {
-    width: 20px;
-}
 </style>

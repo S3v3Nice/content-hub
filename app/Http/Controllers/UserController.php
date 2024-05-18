@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Rules\ColumnExistsRule;
 use App\Rules\NotVerifiedEmailRule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'page' => ['integer'],
             'per_page' => ['integer'],
-            'sort_field' => ['string'],
+            'sort_field' => ['string', new ColumnExistsRule(User::getModel()->getTable())],
             'sort_order' => ['integer', 'min:-1', 'max:1'],
         ]);
 

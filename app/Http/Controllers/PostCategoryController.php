@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PostCategory;
+use App\Rules\ColumnExistsRule;
 use App\Rules\SlugSyntaxRule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ class PostCategoryController extends Controller
         $validator = Validator::make($request->all(), [
             'page' => ['integer'],
             'per_page' => ['integer'],
-            'sort_field' => ['string'],
+            'sort_field' => ['string', new ColumnExistsRule(PostCategory::getModel()->getTable())],
             'sort_order' => ['integer', 'min:-1', 'max:1'],
         ]);
 

@@ -13,6 +13,7 @@ import type {Component} from 'vue'
 import CreatePost from '@/components/post/CreatePost.vue'
 import ReviewPost from '@/components/post/ReviewPost.vue'
 import Post from '@/components/post/Post.vue'
+import PostSubmissionsDashboardSection from '@/components/dashboard/PostSubmissionsDashboardSection.vue'
 
 declare module 'vue-router' {
     interface RouteMeta {
@@ -112,6 +113,15 @@ const routes: RouteRecordRaw[] = [
                         {
                             title: 'Категории - Панель управления',
                             requiresAdmin: true,
+                        },
+                },
+                {
+                    path: 'post-submissions',
+                    name: 'dashboard.post-submissions',
+                    component: PostSubmissionsDashboardSection,
+                    meta:
+                        {
+                            title: 'Заявки на публикацию - Панель управления',
                         },
                 },
             ],

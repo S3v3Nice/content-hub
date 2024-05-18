@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Rules\ColumnExistsRule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -16,7 +17,7 @@ class PostController extends Controller
         $validator = Validator::make($request->all(), [
             'page' => ['integer'],
             'per_page' => ['integer'],
-            'sort_field' => ['string'],
+            'sort_field' => ['string', new ColumnExistsRule(Post::getModel()->getTable())],
             'sort_order' => ['integer', 'min:-1', 'max:1'],
         ]);
 

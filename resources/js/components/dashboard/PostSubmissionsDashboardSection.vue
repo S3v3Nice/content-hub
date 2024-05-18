@@ -77,7 +77,7 @@ function onPageChange(event: PageState) {
                         }}
                     </div>
                     <RouterLink
-                        :to="{ name: 'review-post', params: {id: postVersion.id} }"
+                        :to="{ name: 'post-version', params: {id: postVersion.id} }"
                         class="leading-5 lg:text-lg font-semibold hover:text-[var(--highlight-text-color)] transition-colors line-clamp-3 lg:line-clamp-2"
                     >
                         {{ postVersion.title }}

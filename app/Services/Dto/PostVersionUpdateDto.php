@@ -2,13 +2,12 @@
 
 namespace App\Services\Dto;
 
-use App\Models\PostCategory;
 use Illuminate\Http\UploadedFile;
 
 class PostVersionUpdateDto
 {
     public function __construct(
-        public readonly ?PostCategory $category = null,
+        public readonly ?int          $category_id = null,
         public readonly ?string       $title = null,
         public readonly ?UploadedFile $coverFile = null,
         public readonly ?string       $description = null,

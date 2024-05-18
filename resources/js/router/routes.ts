@@ -11,7 +11,7 @@ import CategoriesDashboardSection from '@/components/dashboard/CategoriesDashboa
 import UsersDashboardSection from '@/components/dashboard/UsersDashboardSection.vue'
 import type {Component} from 'vue'
 import CreatePost from '@/components/post/CreatePost.vue'
-import ReviewPost from '@/components/post/ReviewPost.vue'
+import PostVersion from '@/components/post/PostVersion.vue'
 import Post from '@/components/post/Post.vue'
 import PostSubmissionsDashboardSection from '@/components/dashboard/PostSubmissionsDashboardSection.vue'
 
@@ -137,15 +137,14 @@ const routes: RouteRecordRaw[] = [
             },
     },
     {
-        path: '/review-post/:id',
-        name: 'review-post',
+        path: '/post-version/:id',
+        name: 'post-version',
         props: ({params}) => ({id: Number.parseInt(params.id as string, 10) || 0}),
-        component: ReviewPost,
+        component: PostVersion,
         meta:
             {
-                title: 'Проверка материала',
+                title: 'Заявка на публикацию',
                 requiresAuth: true,
-                requiresModerator: true,
             },
     },
     {

@@ -18,25 +18,38 @@ import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
 import slugify from '@sindresorhus/slugify'
 import Tag from 'primevue/tag'
+import {useAuthStore} from '@/stores/auth'
 
 const props = defineProps({
-    id: Number
+    id: {
+        type: Number,
+        required: true
+    }
 })
 
+const authStore = useAuthStore()
 const toastHelper = new ToastHelper(useToast())
 const editor = ref<InstanceType<typeof Editor>>()
 const postVersion = ref<PostVersion>()
+
 const isLoading = ref(false)
+const isSubmitting = ref(false)
+const isUpdatingDraft = ref(false)
 const isAccepting = ref(false)
 const isRejecting = ref(false)
 const isRequestingChanges = ref(false)
+
+const submitOverlayPanel = ref<OverlayPanel>()
 const acceptOverlayPanel = ref<OverlayPanel>()
 const rejectOverlayPanel = ref<OverlayPanel>()
 const requestChangesOverlayPanel = ref<OverlayPanel>()
+
 const rejectDetails = reactive<PostVersionActionReject>({reason: ''})
 const requestChangesDetails = reactive<PostVersionActionRequestChanges>({message: ''})
 const customSlug = ref<string>()
 
+const isReviewing = computed(() => authStore.isModerator && postVersion.value.status === PostVersionStatus.PENDING)
+const isOwnDraft = computed(() => postVersion.value.author_id === authStore.id && postVersion.value.status === PostVersionStatus.DRAFT)
 const postVersionStatusInfo = computed(() => getPostVersionStatusInfo(postVersion.value?.status!))
 const slug = computed({
     get() {
@@ -56,14 +69,11 @@ onUnmounted(() => {
 })
 
 function onScroll() {
-    if (acceptOverlayPanel.value?.['visible']) {
-        acceptOverlayPanel.value?.alignOverlay()
-    }
-    if (rejectOverlayPanel.value?.['visible']) {
-        rejectOverlayPanel.value?.alignOverlay()
-    }
-    if (requestChangesOverlayPanel.value?.['visible']) {
-        requestChangesOverlayPanel.value?.alignOverlay()
+    const overlayPanels = [submitOverlayPanel, acceptOverlayPanel, rejectOverlayPanel, requestChangesOverlayPanel]
+    for (const overlayPanel of overlayPanels) {
+        if (overlayPanel.value?.['visible']) {
+            overlayPanel.value?.alignOverlay()
+        }
     }
 }
 
@@ -80,6 +90,60 @@ function loadPostVersion() {
         toastHelper.error(getErrorMessageByCode(error.response!.status))
     }).finally(() => {
         isLoading.value = false
+    })
+}
+
+function submit() {
+    isSubmitting.value = true
+    const postVersion = editor.value!.getPostVersion()
+
+    const formData = new FormData()
+    Object.keys(postVersion).forEach(key => formData.append(key, postVersion[key]))
+
+    axios.patch(`/api/post-versions/${props.id}/submit`, formData).then((response) => {
+        if (response.data.success) {
+            toastHelper.success('Материал отправлен на модерацию.')
+            submitOverlayPanel.value?.hide()
+            loadPostVersion()
+        } else {
+            if (response.data.errors) {
+                toastHelper.error('Не все поля заполнены корректно.')
+                // TODO отображать ошибки в редакторе
+            }
+            if (response.data.message) {
+                toastHelper.error(response.data.message)
+            }
+        }
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
+    }).finally(() => {
+        isSubmitting.value = false
+    })
+}
+
+function updateDraft() {
+    isUpdatingDraft.value = true
+    const postVersion = editor.value!.getPostVersion()
+
+    const formData = new FormData()
+    Object.keys(postVersion).forEach(key => formData.append(key, postVersion[key]))
+
+    axios.patch(`/api/post-versions/${props.id}`, formData).then((response) => {
+        if (response.data.success) {
+            toastHelper.success('Изменения сохранены.')
+        } else {
+            if (response.data.errors) {
+                toastHelper.error('Не все поля заполнены корректно.')
+                // TODO отображать ошибки в редакторе
+            }
+            if (response.data.message) {
+                toastHelper.error(response.data.message)
+            }
+        }
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
+    }).finally(() => {
+        isUpdatingDraft.value = false
     })
 }
 
@@ -178,52 +242,77 @@ function requestChanges() {
         <Editor
             v-if="postVersion" ref="editor"
             :post-version="postVersion"
-            editor-title="Проверка материала"
-            :editable="postVersion.status === PostVersionStatus.PENDING"
+            editor-title="Заявка на публикацию"
+            :editable="isOwnDraft || isReviewing"
         >
             <template v-slot:actions>
                 <div class="mb-3 space-y-1">
                     <p class="text-xs text-muted">Автор</p>
-                    <p>{{ postVersion.author!.username }}</p>
+                    <p>{{ postVersion.author_id === authStore.id ? 'Вы' : postVersion.author!.username }}</p>
                 </div>
                 <hr class="mb-3"/>
-                <div v-if="postVersion.status !== PostVersionStatus.PENDING" class="space-y-1">
-                    <p class="text-xs text-muted">Статус</p>
-                    <Tag
-                        :value="postVersionStatusInfo.name"
-                        :severity="postVersionStatusInfo.severity"
-                    />
-                </div>
-                <div v-else class="flex flex-col gap-2">
-                    <Button
-                        :disabled="postVersion.status !== PostVersionStatus.PENDING"
-                        icon="fa-solid fa-check"
-                        label="Принять и опубликовать"
-                        outlined
-                        @click="acceptOverlayPanel?.toggle"
-                    />
-                    <Button
-                        :disabled="postVersion.status !== PostVersionStatus.PENDING"
-                        icon="fa-solid fa-ban"
-                        label="Отклонить"
-                        severity="danger"
-                        outlined
-                        @click="rejectOverlayPanel?.toggle"
-                    />
-                    <Button
-                        :disabled="postVersion.status !== PostVersionStatus.PENDING"
-                        icon="fa-solid fa-rotate-left"
-                        label="Вернуть на доработку"
-                        severity="secondary"
-                        @click="requestChangesOverlayPanel?.toggle"
-                    />
+
+                <p class="text-xs text-muted">Статус</p>
+                <Tag :value="postVersionStatusInfo.name" :severity="postVersionStatusInfo.severity"/>
+
+                <div v-if="isOwnDraft || isReviewing" class="flex flex-col gap-2 mt-3">
+                    <hr class="mb-3"/>
+
+                    <template v-if="isOwnDraft">
+                        <Button
+                            icon="fa-solid fa-check"
+                            label="Отправить на модерацию"
+                            outlined
+                            @click="submitOverlayPanel?.toggle"
+                        />
+                        <Button
+                            icon="fa-solid fa-floppy-disk"
+                            label="Сохранить изменения"
+                            severity="secondary"
+                            :loading="isUpdatingDraft"
+                            @click="updateDraft"
+                        />
+                    </template>
+                    <template v-else>
+                        <Button
+                            icon="fa-solid fa-check"
+                            label="Принять и опубликовать"
+                            outlined
+                            @click="acceptOverlayPanel?.toggle"
+                        />
+                        <Button
+                            icon="fa-solid fa-ban"
+                            label="Отклонить"
+                            severity="danger"
+                            outlined
+                            @click="rejectOverlayPanel?.toggle"
+                        />
+                        <Button
+                            icon="fa-solid fa-rotate-left"
+                            label="Вернуть на доработку"
+                            severity="secondary"
+                            @click="requestChangesOverlayPanel?.toggle"
+                        />
+                    </template>
                 </div>
             </template>
         </Editor>
         <div v-else class="flex justify-center">
-            <Message :closable="false" severity="error">Запрашиваемая версия материала не найдена.</Message>
+            <Message :closable="false" severity="error">
+                Запрашиваемая заявка на публикацию не существует, либо у вас нет к ней доступа.
+            </Message>
         </div>
     </template>
+
+    <OverlayPanel ref="submitOverlayPanel" class="w-[25rem] max-w-[100vw]">
+        <div class="flex flex-col gap-2">
+            <p>Вы точно хотите отправить материал на модерацию?</p>
+            <div class="flex gap-2 justify-end">
+                <Button size="small" label="Отмена" severity="secondary" @click="submitOverlayPanel?.hide()"/>
+                <Button size="small" label="Да, отправить" :loading="isSubmitting" @click="submit"/>
+            </div>
+        </div>
+    </OverlayPanel>
 
     <OverlayPanel ref="acceptOverlayPanel" class="w-[25rem] max-w-[100vw]">
         <div class="flex flex-col gap-2">
@@ -235,10 +324,9 @@ function requestChanges() {
                 <InputText id="accept-slug" v-model="slug"/>
                 <p class="text-xs text-muted">{{ postUrl }}</p>
             </template>
-
             <div class="flex gap-2 justify-end">
                 <Button size="small" label="Отмена" severity="secondary" @click="acceptOverlayPanel?.hide()"/>
-                <Button size="small" label="Подтвердить" :loading="isAccepting" @click="accept"/>
+                <Button size="small" label="Опубликовать" :loading="isAccepting" @click="accept"/>
             </div>
         </div>
     </OverlayPanel>
@@ -249,7 +337,7 @@ function requestChanges() {
             <Textarea id="reject-reason" v-model="rejectDetails.reason" rows="3"/>
             <div class="flex gap-2 justify-end">
                 <Button size="small" label="Отмена" severity="secondary" @click="rejectOverlayPanel?.hide()"/>
-                <Button size="small" label="Подтвердить" :loading="isRejecting" severity="danger" @click="reject"/>
+                <Button size="small" label="Отклонить" :loading="isRejecting" severity="danger" @click="reject"/>
             </div>
         </div>
     </OverlayPanel>
@@ -260,7 +348,7 @@ function requestChanges() {
             <Textarea id="request-changes-message" v-model="requestChangesDetails.message" rows="5"/>
             <div class="flex gap-2 justify-end">
                 <Button size="small" label="Отмена" severity="secondary" @click="requestChangesOverlayPanel?.hide()"/>
-                <Button size="small" label="Подтвердить" :loading="isRequestingChanges" @click="requestChanges"/>
+                <Button size="small" label="Отправить" :loading="isRequestingChanges" @click="requestChanges"/>
             </div>
         </div>
     </OverlayPanel>

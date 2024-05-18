@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\PostCategory;
 use App\Models\PostVersion;
 use App\Models\PostVersionActionType;
 use App\Models\PostVersionStatus;
@@ -37,6 +38,22 @@ class PostVersionService
         ));
 
         return $postVersion;
+    }
+
+    public function updateDraft(PostVersion $postVersion, PostVersionUpdateDto $dto): void
+    {
+        $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Draft);
+    }
+
+    public function submit(PostVersion $postVersion, PostVersionUpdateDto $dto): void
+    {
+        $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Pending);
+
+        $this->postVersionActionService->create(new PostVersionActionDto(
+            $postVersion,
+            Auth::user(),
+            PostVersionActionType::Submit
+        ));
     }
 
     public function requestChanges(PostVersion $postVersion, PostVersionUpdateDto $dto): void
@@ -97,8 +114,8 @@ class PostVersionService
 
     private function updatePostVersion(PostVersion $postVersion, PostVersionUpdateDto $dto, PostVersionStatus $status): void
     {
-        if ($dto->category !== null) {
-            $postVersion->category()->associate($dto->category);
+        if ($dto->category_id !== null && $postVersion->category_id !== $dto->category_id) {
+            $postVersion->category()->associate(PostCategory::find($dto->category_id));
         }
         if ($dto->title !== null) {
             $postVersion->title = $dto->title;

@@ -38,14 +38,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/upload-image', [UploadImageController::class, 'upload']);
 
+    Route::get('/post-versions/{id}', [PostVersionController::class, 'getById'])->where('id', '[0-9]+');
     Route::post('/post-versions', [PostVersionController::class, 'createDraft']);
     Route::post('/post-versions/submit', [PostVersionController::class, 'submitNew']);
+    Route::patch('/post-versions/{id}', [PostVersionController::class, 'updateDraft'])->where('id', '[0-9]+');
+    Route::patch('/post-versions/{id}/submit', [PostVersionController::class, 'submit'])->where('id', '[0-9]+');
 
     Route::middleware('moderator')->group(function () {
         Route::get('/users', [UserController::class, 'get']);
 
         Route::get('/post-versions', [PostVersionController::class, 'get']);
-        Route::get('/post-versions/{id}', [PostVersionController::class, 'getById'])->where('id', '[0-9]+');
         Route::patch('/post-versions/{id}/request-changes', [PostVersionController::class, 'requestChanges'])->where('id', '[0-9]+');
         Route::patch('/post-versions/{id}/accept', [PostVersionController::class, 'accept'])->where('id', '[0-9]+');
         Route::patch('/post-versions/{id}/reject', [PostVersionController::class, 'reject'])->where('id', '[0-9]+');

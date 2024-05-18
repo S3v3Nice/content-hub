@@ -71,7 +71,15 @@ class PostVersionController extends Controller
 
     public function getById(int $id): JsonResponse
     {
-        return response()->json(PostVersion::with(['author', 'post', 'category'])->find($id));
+        /** @var PostVersion $postVersion */
+        $postVersion = PostVersion::with(['author', 'post', 'category'])->find($id);
+        $user = Auth::user();
+
+        return response()->json(
+            $user->is_moderator || $postVersion->author_id === $user->id
+                ? $postVersion
+                : null
+        );
     }
 
     public function createDraft(Request $request): JsonResponse
@@ -120,6 +128,65 @@ class PostVersionController extends Controller
         ]);
     }
 
+    public function updateDraft(Request $request, int $id): JsonResponse
+    {
+        $validator = $this->getPostVersionUpdateValidator($request->all());
+        if ($validator->fails()) {
+            return $this->errorJsonResponse('', $validator->errors());
+        }
+
+        $postVersion = PostVersion::find($id);
+        if ($postVersion === null
+            || $postVersion->status !== PostVersionStatus::Draft
+            || $postVersion->author_id !== Auth::user()->id
+        ) {
+            return $this->errorJsonResponse("У вас нет черновика с id $id.");
+        }
+
+        $this->postVersionService->updateDraft(
+            $postVersion,
+            new PostVersionUpdateDto(
+                $request->integer('category_id', null),
+                $request->string('title'),
+                $request->file('cover_file'),
+                $request->string('description'),
+                $request->string('content'),
+            )
+        );
+
+        return $this->successJsonResponse();
+    }
+
+
+    public function submit(Request $request, int $id): JsonResponse
+    {
+        $validator = $this->getPostVersionUpdateValidator($request->all());
+        if ($validator->fails()) {
+            return $this->errorJsonResponse('', $validator->errors());
+        }
+
+        $postVersion = PostVersion::find($id);
+        if ($postVersion === null
+            || $postVersion->status !== PostVersionStatus::Draft
+            || $postVersion->author_id !== Auth::user()->id
+        ) {
+            return $this->errorJsonResponse("У вас нет черновика с id $id.");
+        }
+
+        $this->postVersionService->submit(
+            $postVersion,
+            new PostVersionUpdateDto(
+                $request->integer('category_id', null),
+                $request->string('title'),
+                $request->file('cover_file'),
+                $request->string('description'),
+                $request->string('content'),
+            )
+        );
+
+        return $this->successJsonResponse();
+    }
+
     public function requestChanges(Request $request, int $id): JsonResponse
     {
         $validator = $this->getPostVersionUpdateValidator($request->all(), [
@@ -141,7 +208,7 @@ class PostVersionController extends Controller
         $this->postVersionService->requestChanges(
             $postVersion,
             new PostVersionUpdateDto(
-                PostCategory::find($request->integer('category_id', null)),
+                $request->integer('category_id', null),
                 $request->string('title'),
                 $request->file('cover_file'),
                 $request->string('description'),
@@ -173,7 +240,7 @@ class PostVersionController extends Controller
         $this->postVersionService->accept(
             $postVersion,
             new PostVersionUpdateDto(
-                PostCategory::find($request->integer('category_id', null)),
+                $request->integer('category_id', null),
                 $request->string('title'),
                 $request->file('cover_file'),
                 $request->string('description'),
@@ -207,7 +274,7 @@ class PostVersionController extends Controller
         $this->postVersionService->reject(
             $postVersion,
             new PostVersionUpdateDto(
-                PostCategory::find($request->integer('category_id', null)),
+                $request->integer('category_id', null),
                 $request->string('title'),
                 $request->file('cover_file'),
                 $request->string('description'),

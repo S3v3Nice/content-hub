@@ -6,8 +6,10 @@ import axios, {type AxiosError} from 'axios'
 import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
 import OverlayPanel from 'primevue/overlaypanel'
+import {useRouter} from 'vue-router'
 
 const toastHelper = new ToastHelper(useToast())
+const router = useRouter()
 const editor = ref<InstanceType<typeof Editor>>()
 const isSubmitting = ref(false)
 const isCreatingDraft = ref(false)
@@ -51,7 +53,8 @@ function createDraft() {
     axios.post('/api/post-versions', formData).then((response) => {
         if (response.data.success) {
             toastHelper.success('Материал сохранён как черновик.')
-            // TODO очищать редактор, либо переадресовывать на страницу со всеми материалами пользователя
+            const postVersionId = response.data.id
+            router.push({name: 'post-version', params: {id: postVersionId}})
         } else {
             if (response.data.errors) {
                 toastHelper.error('Не все поля заполнены корректно.')
@@ -72,19 +75,21 @@ function createDraft() {
 <template>
     <Editor ref="editor" editor-title="Создание материала">
         <template v-slot:actions>
-            <Button
-                class="w-full"
-                label="Отправить на модерацию"
-                :loading="isSubmitting"
-                @click="submitOverlayPanel?.toggle"
-            />
-            <Button
-                class="w-full mt-3"
-                label="Сохранить как черновик"
-                :loading="isCreatingDraft"
-                severity="secondary"
-                @click="createDraft"
-            />
+            <div class="flex flex-col gap-2">
+                <Button
+                    icon="fa-solid fa-check"
+                    label="Отправить на модерацию"
+                    outlined
+                    @click="submitOverlayPanel?.toggle"
+                />
+                <Button
+                    icon="fa-solid fa-floppy-disk"
+                    label="Сохранить как черновик"
+                    severity="secondary"
+                    :loading="isCreatingDraft"
+                    @click="createDraft"
+                />
+            </div>
         </template>
     </Editor>
 
@@ -94,7 +99,7 @@ function createDraft() {
 
             <div class="flex gap-2 justify-end">
                 <Button size="small" label="Отмена" severity="secondary" @click="submitOverlayPanel?.hide()"/>
-                <Button size="small" label="Подтвердить" :loading="isSubmitting" @click="submit"/>
+                <Button size="small" label="Да, отправить" :loading="isSubmitting" @click="submit"/>
             </div>
         </div>
     </OverlayPanel>

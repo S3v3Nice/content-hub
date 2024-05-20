@@ -14,6 +14,9 @@ import CreatePost from '@/components/post/CreatePost.vue'
 import PostVersion from '@/components/post/PostVersion.vue'
 import Post from '@/components/post/Post.vue'
 import PostSubmissionsDashboardSection from '@/components/dashboard/PostSubmissionsDashboardSection.vue'
+import Studio from '@/components/studio/Studio.vue'
+import PostsStudioSection from '@/components/studio/PostsStudioSection.vue'
+import PostSubmissionsStudioSection from '@/components/studio/PostSubmissionsStudioSection.vue'
 
 declare module 'vue-router' {
     interface RouteMeta {
@@ -87,7 +90,7 @@ const routes: RouteRecordRaw[] = [
         path: '/dashboard',
         name: 'dashboard',
         component: Dashboard,
-        redirect: {name: 'dashboard.users'},
+        redirect: {name: 'dashboard.post-submissions'},
         meta:
             {
                 title: 'Панель управления',
@@ -122,6 +125,38 @@ const routes: RouteRecordRaw[] = [
                     meta:
                         {
                             title: 'Заявки на публикацию - Панель управления',
+                        },
+                },
+            ],
+    },
+    {
+        path: '/studio',
+        name: 'studio',
+        component: Studio,
+        redirect: {name: 'studio.posts'},
+        meta:
+            {
+                title: 'Контент-студия',
+                requiresAuth: true,
+            },
+        children:
+            [
+                {
+                    path: 'posts',
+                    name: 'studio.posts',
+                    component: PostsStudioSection,
+                    meta:
+                        {
+                            title: 'Материалы - Контент-студия',
+                        },
+                },
+                {
+                    path: 'post-submissions',
+                    name: 'studio.post-submissions',
+                    component: PostSubmissionsStudioSection,
+                    meta:
+                        {
+                            title: 'Заявки на публикацию - Контент-студия',
                         },
                 },
             ],

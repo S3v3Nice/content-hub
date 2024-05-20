@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PostCategory;
 use App\Models\PostVersion;
 use App\Models\PostVersionStatus;
+use App\Models\User;
 use App\Rules\ColumnExistsRule;
 use App\Services\Dto\NewPostVersionDto;
 use App\Services\Dto\PostVersionUpdateDto;
@@ -80,6 +81,64 @@ class PostVersionController extends Controller
                 ? $postVersion
                 : null
         );
+    }
+
+    public function getByUser(Request $request, int $userId): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => ['integer', "min:0", "max:3"],
+            'page' => ['integer'],
+            'per_page' => ['integer'],
+            'sort_field' => ['string', new ColumnExistsRule(PostVersion::getModel()->getTable())],
+            'sort_order' => ['integer', 'min:-1', 'max:1'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorJsonResponse('', $validator->errors());
+        }
+
+        $user = Auth::user();
+
+        if ($user->id !== $userId) {
+            if (!$user->is_moderator) {
+                return $this->errorJsonResponse("Вам недоступны версии материалов пользователя с id $userId.");
+            }
+
+            $user = User::find($userId);
+            if ($user === null) {
+                return $this->errorJsonResponse("Не существует пользователя с id $userId.");
+            }
+        }
+
+        $defaultSortOrder = -1;
+        $defaultSortField = 'updated_at';
+
+        $status = PostVersionStatus::from($request->integer('status', PostVersionStatus::Pending->value));
+        $perPage = $request->integer('per_page', 10);
+        $sortOrder = $request->integer('sort_order', $defaultSortOrder);
+        if ($sortOrder === 0) {
+            $sortField = $defaultSortField;
+            $sortOrder = $defaultSortOrder;
+        } else {
+            $sortField = $request->string('sort_field', $defaultSortField);
+        }
+        $sortDirection = $sortOrder === -1 ? 'desc' : 'asc';
+
+        $postVersions = PostVersion
+            ::whereAuthorId($userId)
+            ->whereStatus($status)
+            ->orderBy($sortField, $sortDirection)
+            ->with(['author', 'assignedModerator'])
+            ->paginate($perPage);
+
+        return $this->successJsonResponse([
+            'records' => $postVersions->items(),
+            'pagination' => [
+                'total_records' => $postVersions->total(),
+                'current_page' => $postVersions->currentPage(),
+                'total_pages' => $postVersions->lastPage(),
+            ],
+        ]);
     }
 
     public function createDraft(Request $request): JsonResponse

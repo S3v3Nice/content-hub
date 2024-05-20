@@ -3,9 +3,7 @@ import {computed, ref, watch} from 'vue'
 import Skeleton from 'primevue/skeleton'
 import {useRoute} from 'vue-router'
 import Button from 'primevue/button'
-import {useAuthStore} from '@/stores/auth'
 
-const authStore = useAuthStore()
 const route = useRoute()
 const isLoadingSection = ref(false)
 const isMobileMenuShown = ref(false)
@@ -19,20 +17,14 @@ interface DashboardMenuItem {
 
 const menuItems = ref<DashboardMenuItem[]>([
     {
+        label: 'Материалы',
+        icon: 'fa-solid fa-newspaper',
+        route: 'studio.posts',
+    },
+    {
         label: 'Заявки на публикацию',
         icon: 'fa-solid fa-file-alt',
-        route: 'dashboard.post-submissions',
-    },
-    {
-        label: 'Пользователи',
-        icon: 'fa-solid fa-user',
-        route: 'dashboard.users',
-    },
-    {
-        label: 'Категории',
-        icon: 'fa-solid fa-list',
-        route: 'dashboard.categories',
-        visible: authStore.isAdmin
+        route: 'studio.post-submissions',
     },
 ])
 const currentMenuItem = ref<DashboardMenuItem>(getActualCurrentMenuItem())
@@ -73,7 +65,7 @@ const visibleMenuItems = computed<DashboardMenuItem[]>(() => {
             @click="() => isMobileMenuShown = true"
         />
         <div>
-            <p class="text-xs text-muted font-semibold">Панель управления</p>
+            <p class="text-xs text-muted font-semibold">Контент-студия</p>
             <p class="text-xl font-semibold">{{ currentMenuItem.label }}</p>
         </div>
     </div>
@@ -82,7 +74,7 @@ const visibleMenuItems = computed<DashboardMenuItem[]>(() => {
         <div class="lg:block w-full lg:w-[18rem] surface-overlay rounded-xl border"
              :class="{ 'hidden': !isMobileMenuShown, 'block': isMobileMenuShown }"
         >
-            <p class="text-xl font-semibold p-3">Панель управления</p>
+            <p class="text-xl font-semibold p-3">Контент-студия</p>
 
             <div class="pl-2 pr-2 pb-2">
                 <Component

@@ -44,6 +44,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/post-versions/{id}', [PostVersionController::class, 'updateDraft'])->where('id', '[0-9]+');
     Route::patch('/post-versions/{id}/submit', [PostVersionController::class, 'submit'])->where('id', '[0-9]+');
 
+    Route::get('/users/{userId}/post-versions', [PostVersionController::class, 'getByUser'])->where('userId', '[0-9]+');
+    Route::get('/users/{userId}/posts', [PostController::class, 'getByUser'])->where('userId', '[0-9]+');
+
     Route::middleware('moderator')->group(function () {
         Route::get('/users', [UserController::class, 'get']);
 

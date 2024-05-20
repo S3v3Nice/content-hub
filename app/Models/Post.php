@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * App\Models\Post
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\PostVersion $version
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PostVersion> $versions
+ * @property-read int|null $versions_count
  * @method static \Illuminate\Database\Eloquent\Builder|Post newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Post newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Post query()
@@ -41,5 +44,10 @@ class Post extends Model
             ->orderBy('id', 'desc')
             ->with(['author', 'category'])
             ->first();
+    }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(PostVersion::class, 'post_id');
     }
 }

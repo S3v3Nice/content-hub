@@ -29,6 +29,12 @@ const userMenuItems = computed<MenuItem[]>(() => [
         route: 'dashboard',
     },
     {
+        label: 'Контент-студия',
+        icon: 'fa-solid fa-edit',
+        visible: authStore.isAuthenticated,
+        route: 'studio',
+    },
+    {
         label: 'Создать материал',
         icon: 'fa-solid fa-plus',
         visible: authStore.isAuthenticated,

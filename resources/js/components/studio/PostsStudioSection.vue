@@ -74,28 +74,31 @@ function onPageChange(event: PageState) {
         <div v-if="posts.length === 0">
             <p class="text-muted">Материалы не найдены.</p>
         </div>
-        <template v-else>
-            <div class="rounded-md border">
-                <div v-for="post in posts"
-                     class="h-[7rem] grid grid-cols-[5rem,1fr] gap-2 [&:not(:first-child)]:border-t p-3">
-                    <img :src="post.version!.cover_url" alt="" class="h-full object-cover object-center rounded-md">
-                    <div class="flex flex-col flex-grow overflow-hidden h-full">
-                        <div class="text-muted text-xs lg:text-sm">
-                            {{ new Date(post.updated_at).toLocaleDateString() }}
-                        </div>
-                        <RouterLink
-                            :to="{ name: 'post', params: {slug: post.slug} }"
-                            class="leading-5 lg:text-lg font-semibold hover:text-[var(--highlight-text-color)]
-                                   transition-colors line-clamp-3 lg:line-clamp-2"
-                        >
-                            {{ post.version!.title }}
-                        </RouterLink>
+        <div v-else class="rounded-md border">
+            <div v-for="post in posts"
+                 class="h-[7rem] grid grid-cols-[5rem,1fr] gap-2 [&:not(:first-child)]:border-t p-3">
+                <img :src="post.version!.cover_url" alt="" class="h-full object-cover object-center rounded-md">
+                <div class="flex flex-col flex-grow overflow-hidden h-full">
+                    <div class="text-muted text-xs lg:text-sm">
+                        {{ new Date(post.updated_at).toLocaleDateString() }}
                     </div>
+                    <RouterLink
+                        :to="{ name: 'post', params: {slug: post.slug} }"
+                        class="leading-5 lg:text-lg font-semibold hover:text-[var(--highlight-text-color)]
+                               transition-colors line-clamp-3 lg:line-clamp-2"
+                    >
+                        {{ post.version!.title }}
+                    </RouterLink>
                 </div>
             </div>
-            <Paginator :rows="loadRequestData.per_page" :totalRecords="totalRecords" @page="onPageChange"/>
-        </template>
+        </div>
     </template>
+    <Paginator
+        :rows="loadRequestData.per_page"
+        :totalRecords="totalRecords"
+        @page="onPageChange"
+        :class="{'hidden': isLoading || posts.length === 0}"
+    />
 </template>
 
 <style scoped>

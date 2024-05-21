@@ -6,6 +6,7 @@ import {type Post} from '@/types'
 import axios, {type AxiosError} from 'axios'
 import ProgressSpinner from 'primevue/progressspinner'
 import Paginator, {type PageState} from 'primevue/paginator'
+import Avatar from 'primevue/avatar'
 
 interface PostLoadResponseData {
     success: boolean
@@ -74,6 +75,20 @@ function onPageChange(event: PageState) {
                 :to="{name: 'post', params: {slug: post.slug}}"
             >
                 <img :src="post.version!.cover_url" alt="" class="post-cover"/>
+                <div class="flex justify-between items-center">
+                    <div class="flex gap-2 items-center">
+                        <Avatar :label="post.version!.author!.username![0]" shape="circle"/>
+                        <p class="text-sm">{{ post.version!.author!.username }}</p>
+                    </div>
+                    <div class="text-muted text-xs lg:text-sm flex items-center gap-1.5">
+                        <span
+                            class="text-[var(--gray-400)]"
+                            :class="{'fa-regular fa-calendar': post.updated_at === post.created_at,
+                                     'fa-solid fa-clock-rotate-left': post.updated_at !== post.created_at}"
+                        />
+                        <p>{{ new Date(post.updated_at).toLocaleDateString() }}</p>
+                    </div>
+                </div>
                 <p class="text-xl font-bold post-card-title transition-colors">{{ post.version!.title }}</p>
                 <p>{{ post.version!.description }}</p>
             </RouterLink>

@@ -6,6 +6,7 @@ import {useToast} from 'primevue/usetoast'
 import {type Post, type PostVersion} from '@/types'
 import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
+import Avatar from 'primevue/avatar'
 
 const props = defineProps({
     slug: {
@@ -49,6 +50,25 @@ function loadPost() {
             <div class="min-w-0">
                 <div class="surface-overlay rounded-xl border p-4">
                     <div class="space-y-4">
+                        <div class="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-3">
+                            <div class="flex gap-2 items-center">
+                                <Avatar :label="post.version!.author!.username![0]" shape="circle"/>
+                                <p class="text-sm">{{ post.version!.author!.username }}</p>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="text-muted text-xs lg:text-sm flex items-center gap-1.5">
+                                    <span class="text-[var(--gray-400)] fa-regular fa-calendar"/>
+                                    <p>{{ new Date(post.created_at).toLocaleDateString() }}</p>
+                                </div>
+                                <div
+                                    v-if="post.updated_at !== post.created_at"
+                                    class="text-muted text-xs lg:text-sm flex items-center gap-1.5"
+                                >
+                                    <span class="text-[var(--gray-400)] fa-solid fa-clock-rotate-left"/>
+                                    <p>{{ new Date(post.updated_at).toLocaleDateString() }}</p>
+                                </div>
+                            </div>
+                        </div>
                         <h1 class="post-title">{{ post.version!.title }}</h1>
                         <img :src="post.version!.cover_url" alt="" class="post-cover">
                     </div>

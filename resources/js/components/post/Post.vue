@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import axios, {type AxiosError} from 'axios'
-import {getErrorMessageByCode, ToastHelper} from '@/helpers'
+import {changeTitle, getErrorMessageByCode, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
 import {type Post, type PostVersion} from '@/types'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -30,6 +30,7 @@ function loadPost() {
 
         if (Object.keys(version).length !== 0) {
             post.value = response.data
+            changeTitle(post.value?.version!.title!)
         }
     }).catch((error: AxiosError) => {
         toastHelper.error(getErrorMessageByCode(error.response!.status))

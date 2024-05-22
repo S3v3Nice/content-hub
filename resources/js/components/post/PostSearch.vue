@@ -1,7 +1,7 @@
 <script setup lang='ts'>
-import {getErrorMessageByCode, ToastHelper} from '@/helpers'
+import {changeTitle, getErrorMessageByCode, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
-import {computed, reactive, ref, watch} from 'vue'
+import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue'
 import {type Post} from '@/types'
 import axios, {type AxiosError} from 'axios'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -32,13 +32,21 @@ const loadRequestData = reactive({
     per_page: 12,
 })
 
-loadPosts()
+const searchTerm = computed(() => route.query.term)
 
 watch(route, () => {
     loadPosts()
+    updateTitle()
 })
 
-const searchTerm = computed(() => route.query.term)
+updateTitle()
+loadPosts()
+
+function updateTitle() {
+    nextTick(() => {
+        changeTitle(`Поиск «${searchTerm.value as string|undefined ?? ''}»`)
+    })
+}
 
 function loadPosts() {
     isLoading.value = true

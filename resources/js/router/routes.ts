@@ -17,6 +17,7 @@ import PostSubmissionsDashboardSection from '@/components/dashboard/PostSubmissi
 import Studio from '@/components/studio/Studio.vue'
 import PostsStudioSection from '@/components/studio/PostsStudioSection.vue'
 import PostSubmissionsStudioSection from '@/components/studio/PostSubmissionsStudioSection.vue'
+import PostSearch from '@/components/post/PostSearch.vue'
 
 declare module 'vue-router' {
     interface RouteMeta {
@@ -190,6 +191,15 @@ const routes: RouteRecordRaw[] = [
         meta:
             {
                 title: 'Материал',
+            },
+    },
+    {
+        path: '/search',
+        name: 'post-search',
+        component: PostSearch,
+        meta:
+            {
+                title: 'Поиск материалов',
             },
     },
     {

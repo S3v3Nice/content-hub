@@ -10,6 +10,8 @@ import InputSwitch from 'primevue/inputswitch'
 import {useRouter} from 'vue-router'
 import type {MenuItem} from 'primevue/menuitem'
 import {useModalStore} from '@/stores/modal'
+import InputText from 'primevue/inputtext'
+import InputGroup from 'primevue/inputgroup'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -73,6 +75,8 @@ const userMenuItems = computed<MenuItem[]>(() => [
     },
 ])
 
+const searchTerm = ref('')
+
 onMounted(() => {
     document.addEventListener('scroll', onScroll)
 })
@@ -102,33 +106,52 @@ function logout() {
         router.go(0)
     })
 }
+
+function onSearch() {
+    router.push({name: 'post-search', query: {term: searchTerm.value}, force: true})
+}
 </script>
 
 <template>
     <div class="header-fixed surface-overlay p-2 lg:pl-0 lg:pr-0 border-b">
-        <div class="page-container flex space-x-4 justify-between h-full">
+        <div class="page-container flex h-full gap-4">
             <RouterLink :to="{name: 'home'}">
                 <img v-if="themeManager.isLight()" src="/images/logo.svg" alt="Logo" class="h-full">
                 <img v-else src="/images/logo-dark.svg" alt="Logo" class="h-full">
             </RouterLink>
-            <Button
-                v-if="!authStore.isAuthenticated"
-                icon="fa-regular fa-user"
-                @click="toggleUserMenu"
-                aria-haspopup="true"
-                aria-controls="user-menu"
-                aria-label="Меню пользователя"
-            />
-            <Button
-                v-else
-                unstyled
-                @click="toggleUserMenu"
-                aria-haspopup="true"
-                aria-controls="user-menu"
-                aria-label="Меню пользователя"
-            >
-                <Avatar :label="authStore.username![0]" shape="circle"/>
-            </Button>
+
+            <div class="flex ml-auto gap-4">
+                <form @submit.prevent="onSearch">
+                    <InputGroup>
+                        <InputText v-model="searchTerm" placeholder="Поиск" autocomplete="off"/>
+                        <Button
+                            title="Найти"
+                            icon="fa-solid fa-search"
+                            outlined
+                            type="submit"
+                        />
+                    </InputGroup>
+                </form>
+
+                <Button
+                    v-if="!authStore.isAuthenticated"
+                    icon="fa-regular fa-user"
+                    @click="toggleUserMenu"
+                    aria-haspopup="true"
+                    aria-controls="user-menu"
+                    aria-label="Меню пользователя"
+                />
+                <Button
+                    v-else
+                    unstyled
+                    @click="toggleUserMenu"
+                    aria-haspopup="true"
+                    aria-controls="user-menu"
+                    aria-label="Меню пользователя"
+                >
+                    <Avatar :label="authStore.username![0]" shape="circle"/>
+                </Button>
+            </div>
         </div>
 
         <Menu

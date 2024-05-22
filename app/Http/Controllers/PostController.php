@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\PostVersionStatus;
 use App\Models\PostView;
 use App\Rules\ColumnExistsRule;
+use Illuminate\Database\Eloquent\Builder as Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +19,7 @@ class PostController extends Controller
     public function get(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
+            'term' => ['string'],
             'page' => ['integer'],
             'per_page' => ['integer'],
             'sort_field' => ['string', new ColumnExistsRule(Post::getModel()->getTable())],
@@ -37,8 +41,23 @@ class PostController extends Controller
             $sortDirection = $sortOrder === -1 ? 'desc' : 'asc';
         }
 
-        $posts = Post::orderBy($sortField, $sortDirection)->paginate($perPage);
+        $searchTerm = $request->string('term');
 
+        $postsQuery = Post::orderBy($sortField, $sortDirection);
+        if ($searchTerm !== null) {
+            $postsQuery->whereHas('versions', function (Builder $query) use ($searchTerm) {
+                $query->whereIn('id', function (QueryBuilder $subQuery) {
+                    $subQuery->selectRaw('MAX(id)')
+                        ->from('post_versions')
+                        ->where('status', PostVersionStatus::Accepted)
+                        ->groupBy('post_id');
+                })
+                    ->where('title', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        $posts = $postsQuery->paginate($perPage);
         return $this->successJsonResponse([
             'records' => $posts->items(),
             'pagination' => [

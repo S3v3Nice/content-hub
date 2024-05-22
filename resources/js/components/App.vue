@@ -12,7 +12,7 @@ usePostCategoryStore().load()
     <GlobalModals/>
     <div class="surface-ground">
         <Header class="h-[var(--header-height)]"></Header>
-        <div class='page-container'>
+        <div class='page-container mb-4'>
             <RouterView></RouterView>
         </div>
     </div>

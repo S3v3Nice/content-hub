@@ -18,6 +18,7 @@ import Studio from '@/components/studio/Studio.vue'
 import PostsStudioSection from '@/components/studio/PostsStudioSection.vue'
 import PostSubmissionsStudioSection from '@/components/studio/PostSubmissionsStudioSection.vue'
 import PostSearch from '@/components/post/PostSearch.vue'
+import PostCategory from '@/components/post/PostCategory.vue'
 
 declare module 'vue-router' {
     interface RouteMeta {
@@ -191,6 +192,16 @@ const routes: RouteRecordRaw[] = [
         meta:
             {
                 title: 'Материал',
+            },
+    },
+    {
+        path: '/category/:slug',
+        name: 'post-category',
+        props: true,
+        component: PostCategory,
+        meta:
+            {
+                title: 'Категория материалов',
             },
     },
     {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\PostCategory;
 use App\Models\PostVersionStatus;
 use App\Models\PostView;
 use App\Rules\ColumnExistsRule;
@@ -11,6 +12,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class PostController extends Controller
 {
@@ -19,7 +21,8 @@ class PostController extends Controller
     public function get(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'term' => ['string'],
+            'category_id' => ['integer', Rule::exists(PostCategory::class, 'id')],
+            'term' => ['string', 'nullable'],
             'page' => ['integer'],
             'per_page' => ['integer'],
             'sort_field' => ['string', new ColumnExistsRule(Post::getModel()->getTable())],
@@ -41,19 +44,27 @@ class PostController extends Controller
             $sortDirection = $sortOrder === -1 ? 'desc' : 'asc';
         }
 
+        $categoryId = $request->integer('category_id', -1);
         $searchTerm = $request->string('term');
 
         $postsQuery = Post::orderBy($sortField, $sortDirection);
-        if ($searchTerm !== null) {
-            $postsQuery->whereHas('versions', function (Builder $query) use ($searchTerm) {
+        if ($searchTerm->isNotEmpty() || $categoryId !== -1) {
+            $postsQuery->whereHas('versions', function (Builder $query) use ($searchTerm, $categoryId) {
                 $query->whereIn('id', function (QueryBuilder $subQuery) {
                     $subQuery->selectRaw('MAX(id)')
                         ->from('post_versions')
                         ->where('status', PostVersionStatus::Accepted)
                         ->groupBy('post_id');
-                })
-                    ->where('title', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                });
+                if ($categoryId !== -1) {
+                    $query->where('category_id', '=', $categoryId);
+                }
+                if ($searchTerm->isNotEmpty()) {
+                    $query->where(function ($query) use ($searchTerm) {
+                        $query->where('title', 'like', '%' . $searchTerm . '%')
+                            ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                    });
+                }
             });
         }
 

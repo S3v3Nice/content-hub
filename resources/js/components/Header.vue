@@ -6,18 +6,22 @@ import useThemeManager from '@/theme-manager'
 import Button from 'primevue/button'
 import Avatar from 'primevue/avatar'
 import Menu from 'primevue/menu'
+import Sidebar from 'primevue/sidebar'
 import InputSwitch from 'primevue/inputswitch'
 import {useRouter} from 'vue-router'
 import type {MenuItem} from 'primevue/menuitem'
 import {useModalStore} from '@/stores/modal'
 import InputText from 'primevue/inputtext'
 import InputGroup from 'primevue/inputgroup'
+import {usePostCategoryStore} from '@/stores/postCategory'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const categoryStore = usePostCategoryStore()
 const modalStore = useModalStore()
 const themeManager = useThemeManager()
 
+const isMobileSidebarVisible = ref(false)
 const userMenu = ref<Menu>()
 const userMenuItems = computed<MenuItem[]>(() => [
     {
@@ -115,10 +119,30 @@ function onSearch() {
 <template>
     <div class="header-fixed surface-overlay p-2 lg:pl-0 lg:pr-0 border-b">
         <div class="page-container flex h-full gap-4">
+            <Button
+                icon="fa-solid fa-bars"
+                text
+                severity="secondary"
+                aria-haspopup="true"
+                aria-controls="user-menu"
+                aria-label="Мобильное меню"
+                class="block lg:hidden"
+                @click="isMobileSidebarVisible = true"
+            />
+
             <RouterLink :to="{name: 'home'}">
                 <img v-if="themeManager.isLight()" src="/images/logo.svg" alt="Logo" class="h-full">
                 <img v-else src="/images/logo-dark.svg" alt="Logo" class="h-full">
             </RouterLink>
+
+            <div class="hidden lg:flex gap-3">
+                <RouterLink
+                    v-for="category in categoryStore.categories"
+                    :to="{name: 'post-category', params: {slug: category.slug}}"
+                >
+                    <Button :label="category.name" severity="secondary" text/>
+                </RouterLink>
+            </div>
 
             <div class="flex ml-auto gap-4">
                 <form @submit.prevent="onSearch">
@@ -153,6 +177,18 @@ function onSearch() {
                 </Button>
             </div>
         </div>
+
+        <Sidebar v-model:visible="isMobileSidebarVisible" header="Навигация">
+            <RouterLink
+                v-for="category in categoryStore.categories"
+                :to="{name: 'post-category', params: {slug: category.slug}}"
+                class="flex flex-col"
+            >
+                <Button severity="secondary" text @click="isMobileSidebarVisible = false">
+                    {{ category.name }}
+                </Button>
+            </RouterLink>
+        </Sidebar>
 
         <Menu
             ref="userMenu"

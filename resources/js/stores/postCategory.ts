@@ -19,6 +19,10 @@ export const usePostCategoryStore = defineStore('postCategory', {
                 this.categories = data.records
             }).catch(() => {
             })
+        },
+
+        getBySlug(slug: string): PostCategory | undefined {
+            return this.categories.find(category => category.slug === slug)
         }
     }
 })

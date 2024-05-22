@@ -17,6 +17,7 @@ class PostCategoryController extends Controller
     public function get(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
+            'with_posts' => ['boolean'],
             'page' => ['integer'],
             'per_page' => ['integer'],
             'sort_field' => ['string', new ColumnExistsRule(PostCategory::getModel()->getTable())],
@@ -38,7 +39,12 @@ class PostCategoryController extends Controller
             $sortDirection = $sortOrder === -1 ? 'desc' : 'asc';
         }
 
-        $records = PostCategory::orderBy($sortField, $sortDirection)->paginate($perPage);
+        $recordsQuery = PostCategory::orderBy($sortField, $sortDirection);
+        if ($request->get('with_posts', false)) {
+            $recordsQuery->with(['posts']);
+        }
+
+        $records = $recordsQuery->paginate($perPage);
 
         return $this->successJsonResponse([
             'records' => $records->items(),

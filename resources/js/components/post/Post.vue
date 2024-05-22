@@ -74,7 +74,7 @@ function loadPost() {
                     <div v-html="post.version!.content" class="post-content p-4"/>
                     <PostSingleActionsBar
                         :post="post"
-                        class="block sticky bottom-0 rounded-b-xl border-t overflow-x-auto
+                        class="flex sticky bottom-0 rounded-b-xl border-t overflow-x-auto
                                whitespace-nowrap surface-overlay px-2"
                     />
                 </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\PostView;
 use App\Rules\ColumnExistsRule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -50,7 +51,18 @@ class PostController extends Controller
 
     public function getBySlug(string $slug): JsonResponse
     {
-        return response()->json(Post::whereSlug($slug)->first());
+        $post = Post::whereSlug($slug)->first();
+        if ($post !== null) {
+            $postView = PostView::wherePostId($post->id)->first();
+            if ($postView === null) {
+                $newPostView = PostView::make();
+                $newPostView->ip = request()->ip();
+                $newPostView->post()->associate($post);
+                $newPostView->save();
+            }
+        }
+
+        return response()->json($post);
     }
 
     public function getByUser(Request $request, int $userId): JsonResponse

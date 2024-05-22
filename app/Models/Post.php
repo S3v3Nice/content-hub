@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read bool $is_liked
  * @property-read int $like_count
  * @property-read \App\Models\PostVersion $version
+ * @property-read int $view_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PostVersion> $versions
  * @property-read int|null $versions_count
  * @method static \Illuminate\Database\Eloquent\Builder|Post newModelQuery()
@@ -39,6 +40,7 @@ class Post extends Model
     protected $appends = [
         'version',
         'like_count',
+        'view_count',
         'is_liked',
     ];
 
@@ -54,6 +56,11 @@ class Post extends Model
     public function getLikeCountAttribute(): int
     {
         return PostLike::wherePostId($this->id)->count();
+    }
+
+    public function getViewCountAttribute(): int
+    {
+        return PostView::wherePostId($this->id)->count();
     }
 
     public function getIsLikedAttribute(): bool

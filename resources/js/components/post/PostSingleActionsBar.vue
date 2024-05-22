@@ -57,7 +57,7 @@ function onLikeClick() {
 </script>
 
 <template>
-    <div >
+    <div>
         <div class="flex items-center">
             <Button
                 text
@@ -68,6 +68,17 @@ function onLikeClick() {
                 @click="onLikeClick"
             />
             <p :class="{'p-error': post.is_liked}">{{ post.like_count }}</p>
+        </div>
+
+        <div class="flex items-center ml-auto">
+            <Button
+                text
+                rounded
+                title="Просмотры"
+                severity="secondary"
+                icon="fa-regular fa-eye"
+            />
+            <p>{{ post.view_count }}</p>
         </div>
     </div>
 </template>

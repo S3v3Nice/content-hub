@@ -7,6 +7,7 @@ import axios, {type AxiosError} from 'axios'
 import ProgressSpinner from 'primevue/progressspinner'
 import Paginator, {type PageState} from 'primevue/paginator'
 import Avatar from 'primevue/avatar'
+import PostSingleActionsBar from '@/components/post/PostSingleActionsBar.vue'
 
 interface PostLoadResponseData {
     success: boolean
@@ -38,7 +39,7 @@ function loadPosts() {
         const responseData: PostLoadResponseData = response.data
         if (responseData.success) {
             totalRecords.value = responseData.pagination!.total_records
-            posts.value = responseData.records
+            posts.value = responseData.records!
         }
     }).catch((error: AxiosError) => {
         toastHelper.error(getErrorMessageByCode(error.response!.status))
@@ -69,12 +70,14 @@ function onPageChange(event: PageState) {
             <p class="text-muted">Материалы не найдены.</p>
         </div>
         <div v-else class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            <RouterLink
+            <div
                 v-for="post in posts"
                 class="post-card flex flex-col surface-overlay rounded-lg border p-4 gap-3"
-                :to="{name: 'post', params: {slug: post.slug}}"
             >
-                <img :src="post.version!.cover_url" alt="" class="post-cover"/>
+                <RouterLink :to="{name: 'post', params: {slug: post.slug}}">
+                    <img :src="post.version!.cover_url" alt="" class="post-cover"/>
+                </RouterLink>
+
                 <div class="flex justify-between items-center">
                     <div class="flex gap-2 items-center">
                         <Avatar :label="post.version!.author!.username![0]" shape="circle"/>
@@ -89,9 +92,15 @@ function onPageChange(event: PageState) {
                         <p>{{ new Date(post.updated_at).toLocaleDateString() }}</p>
                     </div>
                 </div>
-                <p class="text-xl font-bold post-card-title transition-colors">{{ post.version!.title }}</p>
-                <p>{{ post.version!.description }}</p>
-            </RouterLink>
+                <RouterLink :to="{name: 'post', params: {slug: post.slug}}" class="flex flex-col gap-3">
+                    <div class="text-xl font-bold post-card-title transition-colors">
+                        {{ post.version!.title }}
+                    </div>
+                    <p>{{ post.version!.description }}</p>
+                </RouterLink>
+
+                <PostSingleActionsBar :post="post" class="mt-auto flex"/>
+            </div>
         </div>
     </template>
     <Paginator
@@ -104,7 +113,4 @@ function onPageChange(event: PageState) {
 </template>
 
 <style scoped>
-.post-card:hover .post-card-title {
-    color: var(--highlight-text-color)
-}
 </style>

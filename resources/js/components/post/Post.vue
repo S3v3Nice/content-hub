@@ -7,6 +7,7 @@ import {type Post, type PostVersion} from '@/types'
 import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
 import Avatar from 'primevue/avatar'
+import PostSingleActionsBar from '@/components/post/PostSingleActionsBar.vue'
 
 const props = defineProps({
     slug: {
@@ -43,13 +44,10 @@ function loadPost() {
         <ProgressSpinner/>
     </div>
     <template v-else>
-        <div v-if="!post" class="flex justify-center">
-            <Message :closable="false" severity="error">Материал не найден.</Message>
-        </div>
-        <div v-else class="grid lg:grid-cols-[1fr,19rem] gap-4">
+        <div v-if="post" class="grid lg:grid-cols-[1fr,19rem] gap-4">
             <div class="min-w-0">
-                <div class="surface-overlay rounded-xl border p-4">
-                    <div class="space-y-4">
+                <div class="surface-overlay rounded-xl border">
+                    <div class="space-y-4 p-4">
                         <div class="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-3">
                             <div class="flex gap-2 items-center">
                                 <Avatar :label="post.version!.author!.username![0]" shape="circle"/>
@@ -73,14 +71,23 @@ function loadPost() {
                         <img :src="post.version!.cover_url" alt="" class="post-cover">
                     </div>
 
-                    <div v-html="post.version!.content" class="post-content"/>
+                    <div v-html="post.version!.content" class="post-content p-4"/>
+                    <PostSingleActionsBar
+                        :post="post"
+                        class="block sticky bottom-0 rounded-b-xl border-t overflow-x-auto
+                               whitespace-nowrap surface-overlay px-2"
+                    />
                 </div>
             </div>
 
             <div
-                class="hidden lg:block lg:sticky lg:right-0 lg:top-[--header-with-margin-height] lg:max-h-[calc(100vh-var(--header-with-margin-height))]"
+                class="hidden lg:block lg:sticky lg:right-0 lg:top-[--header-with-margin-height]
+                       lg:max-h-[calc(100vh-var(--header-with-margin-height))]"
             >
             </div>
+        </div>
+        <div v-else class="flex justify-center">
+            <Message :closable="false" severity="error">Материал не найден.</Message>
         </div>
     </template>
 </template>

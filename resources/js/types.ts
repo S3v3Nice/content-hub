@@ -26,6 +26,8 @@ export interface Post {
     id: bigint
     slug: string
     version?: PostVersion
+    like_count: number
+    is_liked: boolean
     created_at: string
     updated_at: string
 }

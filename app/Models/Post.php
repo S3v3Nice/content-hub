@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $slug
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read bool $is_liked
+ * @property-read int $like_count
  * @property-read \App\Models\PostVersion $version
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PostVersion> $versions
  * @property-read int|null $versions_count
@@ -34,7 +37,9 @@ class Post extends Model
     ];
 
     protected $appends = [
-        'version'
+        'version',
+        'like_count',
+        'is_liked',
     ];
 
     public function getVersionAttribute(): PostVersion
@@ -44,6 +49,17 @@ class Post extends Model
             ->orderBy('id', 'desc')
             ->with(['author', 'category'])
             ->first();
+    }
+
+    public function getLikeCountAttribute(): int
+    {
+        return PostLike::wherePostId($this->id)->count();
+    }
+
+    public function getIsLikedAttribute(): bool
+    {
+        $user = Auth::user();
+        return $user !== null && PostLike::wherePostId($this->id)->whereUserId($user->id)->exists();
     }
 
     public function versions(): HasMany

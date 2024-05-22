@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PostCategoryController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PostLikeController;
 use App\Http\Controllers\PostVersionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UploadImageController;
@@ -46,6 +47,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/users/{userId}/post-versions', [PostVersionController::class, 'getByUser'])->where('userId', '[0-9]+');
     Route::get('/users/{userId}/posts', [PostController::class, 'getByUser'])->where('userId', '[0-9]+');
+
+    Route::post('/posts/{postId}/likes', [PostLikeController::class, 'like'])->where('postId', '[0-9]+');
+    Route::delete('/posts/{postId}/likes', [PostLikeController::class, 'unlike'])->where('postId', '[0-9]+');
 
     Route::middleware('moderator')->group(function () {
         Route::get('/users', [UserController::class, 'get']);

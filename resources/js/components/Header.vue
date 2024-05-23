@@ -21,7 +21,7 @@ const categoryStore = usePostCategoryStore()
 const modalStore = useModalStore()
 const themeManager = useThemeManager()
 
-const isMobileSidebarVisible = ref(false)
+const isNavigationSidebarVisible = ref(false)
 const userMenu = ref<Menu>()
 const userMenuItems = computed<MenuItem[]>(() => [
     {
@@ -125,24 +125,14 @@ function onSearch() {
                 severity="secondary"
                 aria-haspopup="true"
                 aria-controls="user-menu"
-                aria-label="Мобильное меню"
-                class="block lg:hidden"
-                @click="isMobileSidebarVisible = true"
+                aria-label="Меню навигации"
+                @click="isNavigationSidebarVisible = true"
             />
 
             <RouterLink :to="{name: 'home'}">
                 <img v-if="themeManager.isLight()" src="/images/logo.svg" alt="Logo" class="h-full">
                 <img v-else src="/images/logo-dark.svg" alt="Logo" class="h-full">
             </RouterLink>
-
-            <div class="hidden lg:flex gap-3">
-                <RouterLink
-                    v-for="category in categoryStore.categories"
-                    :to="{name: 'post-category', params: {slug: category.slug}}"
-                >
-                    <Button :label="category.name" severity="secondary" text/>
-                </RouterLink>
-            </div>
 
             <div class="flex ml-auto gap-4">
                 <form @submit.prevent="onSearch">
@@ -178,13 +168,13 @@ function onSearch() {
             </div>
         </div>
 
-        <Sidebar v-model:visible="isMobileSidebarVisible" header="Навигация">
+        <Sidebar v-model:visible="isNavigationSidebarVisible" header="Навигация">
             <RouterLink
                 v-for="category in categoryStore.categories"
                 :to="{name: 'post-category', params: {slug: category.slug}}"
                 class="flex flex-col"
             >
-                <Button severity="secondary" text @click="isMobileSidebarVisible = false">
+                <Button severity="secondary" text @click="isNavigationSidebarVisible = false">
                     {{ category.name }}
                 </Button>
             </RouterLink>

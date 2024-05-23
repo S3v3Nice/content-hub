@@ -26,7 +26,7 @@ function submit() {
         if (response.data.success) {
             toastHelper.success('Материал отправлен на модерацию.')
             submitOverlayPanel.value?.hide()
-            // TODO очищать редактор, либо переадресовывать на страницу со всеми материалами пользователя
+            router.push({name: 'post-version', params: {id: response.data.id}})
         } else {
             if (response.data.errors) {
                 toastHelper.error('Не все поля заполнены корректно.')

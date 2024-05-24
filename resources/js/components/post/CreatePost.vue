@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Editor from '@/components/post/editor/Editor.vue'
+import PostEditor from '@/components/post/editor/PostEditor.vue'
 import Button from 'primevue/button'
 import {ref} from 'vue'
 import axios, {type AxiosError} from 'axios'
@@ -7,20 +7,20 @@ import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
 import OverlayPanel from 'primevue/overlaypanel'
 import {useRouter} from 'vue-router'
+import type {PostVersion} from '@/types'
 
 const toastHelper = new ToastHelper(useToast())
 const router = useRouter()
-const editor = ref<InstanceType<typeof Editor>>()
 const isSubmitting = ref(false)
 const isCreatingDraft = ref(false)
 const submitOverlayPanel = ref<OverlayPanel>()
+const postVersion = ref<PostVersion>({})
 
 function submit() {
     isSubmitting.value = true
-    const postVersion = editor.value!.getPostVersion()
 
     const formData = new FormData()
-    Object.keys(postVersion).forEach(key => formData.append(key, postVersion[key]))
+    Object.keys(postVersion.value).forEach(key => formData.append(key, postVersion.value[key]))
 
     axios.post('/api/post-versions/submit', formData).then((response) => {
         if (response.data.success) {
@@ -45,10 +45,9 @@ function submit() {
 
 function createDraft() {
     isCreatingDraft.value = true
-    const postVersion = editor.value!.getPostVersion()
 
     const formData = new FormData()
-    Object.keys(postVersion).forEach(key => formData.append(key, postVersion[key]))
+    Object.keys(postVersion.value).forEach(key => formData.append(key, postVersion.value[key]))
 
     axios.post('/api/post-versions', formData).then((response) => {
         if (response.data.success) {
@@ -73,7 +72,7 @@ function createDraft() {
 </script>
 
 <template>
-    <Editor ref="editor" editor-title="Создание материала">
+    <PostEditor v-model="postVersion" editor-title="Создание материала">
         <template v-slot:actions>
             <div class="flex flex-col gap-2">
                 <Button
@@ -91,7 +90,7 @@ function createDraft() {
                 />
             </div>
         </template>
-    </Editor>
+    </PostEditor>
 
     <OverlayPanel ref="submitOverlayPanel" class="w-[25rem] max-w-[100vw]">
         <div class="flex flex-col gap-2">

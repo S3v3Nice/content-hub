@@ -2,8 +2,8 @@
 import Button from 'primevue/button'
 import type {TooltipOptions} from 'primevue/tooltip'
 import {onUnmounted, type PropType, reactive} from 'vue'
-import EditorVerticalMenu from '@/components/post/editor/EditorVerticalMenu.vue'
-import type {EditorMenuItem} from '@/types'
+import EditorVerticalMenu from '@/components/editor/EditorVerticalMenu.vue'
+import type {EditorMenuItem} from '@/components/editor/types'
 
 defineProps({
     items: {

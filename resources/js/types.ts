@@ -93,22 +93,3 @@ export interface PostVersionAction {
     created_at?: string
     updated_at?: string
 }
-
-export interface EditorNodeInfo {
-    name: string
-    attributes?: object
-    displayName: string
-    shortcut?: string
-    icon: string
-}
-
-export interface EditorMenuItem {
-    isVisible?: boolean
-    isSeparator?: boolean
-    displayName?: string
-    icon?: string
-    shortcut?: string
-    isActive?: boolean | ((...args: any) => boolean)
-    callback?: ((...args: any) => void)
-    children?: EditorMenuItem[]
-}

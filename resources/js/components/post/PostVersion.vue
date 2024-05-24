@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Editor from '@/components/post/editor/Editor.vue'
+import PostEditor from '@/components/post/editor/PostEditor.vue'
 import Button from 'primevue/button'
 import OverlayPanel from 'primevue/overlaypanel'
 import InputText from 'primevue/inputtext'
@@ -29,7 +29,6 @@ const props = defineProps({
 
 const authStore = useAuthStore()
 const toastHelper = new ToastHelper(useToast())
-const editor = ref<InstanceType<typeof Editor>>()
 const postVersion = ref<PostVersion>()
 
 const isLoading = ref(false)
@@ -48,8 +47,8 @@ const rejectDetails = reactive<PostVersionActionReject>({reason: ''})
 const requestChangesDetails = reactive<PostVersionActionRequestChanges>({message: ''})
 const customSlug = ref<string>()
 
-const isReviewing = computed(() => authStore.isModerator && postVersion.value.status === PostVersionStatus.PENDING)
-const isOwnDraft = computed(() => postVersion.value.author_id === authStore.id && postVersion.value.status === PostVersionStatus.DRAFT)
+const isReviewing = computed(() => authStore.isModerator && postVersion.value!.status === PostVersionStatus.PENDING)
+const isOwnDraft = computed(() => postVersion.value!.author_id === authStore.id && postVersion.value!.status === PostVersionStatus.DRAFT)
 const postVersionStatusInfo = computed(() => getPostVersionStatusInfo(postVersion.value?.status!))
 const slug = computed({
     get() {
@@ -95,10 +94,9 @@ function loadPostVersion() {
 
 function submit() {
     isSubmitting.value = true
-    const postVersion = editor.value!.getPostVersion()
 
     const formData = new FormData()
-    Object.keys(postVersion).forEach(key => formData.append(key, postVersion[key]))
+    Object.keys(postVersion.value!).forEach(key => formData.append(key, postVersion.value![key]))
 
     axios.patch(`/api/post-versions/${props.id}/submit`, formData).then((response) => {
         if (response.data.success) {
@@ -123,10 +121,9 @@ function submit() {
 
 function updateDraft() {
     isUpdatingDraft.value = true
-    const postVersion = editor.value!.getPostVersion()
 
     const formData = new FormData()
-    Object.keys(postVersion).forEach(key => formData.append(key, postVersion[key]))
+    Object.keys(postVersion.value!).forEach(key => formData.append(key, postVersion.value![key]))
 
     axios.patch(`/api/post-versions/${props.id}`, formData).then((response) => {
         if (response.data.success) {
@@ -151,8 +148,8 @@ function accept() {
     isAccepting.value = true
 
     const formData = new FormData()
+    Object.keys(postVersion.value!).forEach(key => formData.append(key, postVersion.value![key]))
     if (!postVersion.value?.post_id) {
-        Object.keys(postVersion.value!).forEach(key => formData.append(key, postVersion.value![key]))
         formData.append('slug', slug.value)
     }
 
@@ -239,9 +236,9 @@ function requestChanges() {
         <ProgressSpinner/>
     </div>
     <template v-else>
-        <Editor
-            v-if="postVersion" ref="editor"
-            :post-version="postVersion"
+        <PostEditor
+            v-if="postVersion"
+            v-model="postVersion"
             editor-title="Заявка на публикацию"
             :editable="isOwnDraft || isReviewing"
         >
@@ -296,7 +293,7 @@ function requestChanges() {
                     </template>
                 </div>
             </template>
-        </Editor>
+        </PostEditor>
         <div v-else class="flex justify-center">
             <Message :closable="false" severity="error">
                 Запрашиваемая заявка на публикацию не существует, либо у вас нет к ней доступа.

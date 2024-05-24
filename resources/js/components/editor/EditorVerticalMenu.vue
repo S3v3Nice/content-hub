@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {type PropType, ref} from 'vue'
-import type {EditorMenuItem} from '@/types'
+import type {EditorMenuItem} from '@/components/editor/types'
 import type {MenuItem} from 'primevue/menuitem'
 import TieredMenu from 'primevue/tieredmenu'
 

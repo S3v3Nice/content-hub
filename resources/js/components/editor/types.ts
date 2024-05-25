@@ -5,6 +5,6 @@ export interface EditorMenuItem {
     icon?: string
     shortcut?: string
     isActive?: boolean | ((...args: any) => boolean)
-    callback?: ((...args: any) => void)
+    callback?: (event: Event) => void
     children?: EditorMenuItem[]
 }

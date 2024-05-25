@@ -19,7 +19,7 @@ interface EditorNodeInfo {
     displayName: string
     shortcut?: string
     icon: string
-    callback: () => void
+    callback: (event: Event) => void
 }
 
 const props = defineProps({
@@ -41,6 +41,12 @@ const props = defineProps({
 
 const toastHelper = new ToastHelper(useToast())
 const contentModel = defineModel<string>()
+const addNodeMenu = ref<InstanceType<typeof EditorVerticalMenu>>()
+const linkOverlayPanel = ref<OverlayPanel>()
+const currentLink = reactive({
+    text: '',
+    href: ''
+})
 
 const editor = useEditor({
     editorProps: {
@@ -168,7 +174,7 @@ const marks: { [key: string]: EditorNodeInfo } = {
         name: 'link',
         displayName: 'Ссылка',
         icon: 'fa-solid fa-link',
-        callback: () => linkOverlayPanel.value?.toggle,
+        callback: (event: Event) => linkOverlayPanel.value!.toggle(event),
     },
 }
 
@@ -255,14 +261,6 @@ const menuItems = computed<EditorMenuItem[]>(() => {
     }
 
     return items
-})
-
-const addNodeMenu = ref<InstanceType<typeof EditorVerticalMenu>>()
-
-const linkOverlayPanel = ref<OverlayPanel>()
-const currentLink = reactive({
-    text: '',
-    href: ''
 })
 
 const selectedText = computed(() => {

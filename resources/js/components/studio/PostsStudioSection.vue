@@ -45,7 +45,6 @@ function loadPosts() {
             totalRecords.value = responseData.pagination!.total_records
         } else {
             toastHelper.error()
-            console.log(responseData.errors)
         }
     }).catch((error: AxiosError) => {
         toastHelper.error(getErrorMessageByCode(error.response!.status))

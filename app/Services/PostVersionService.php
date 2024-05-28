@@ -70,13 +70,17 @@ class PostVersionService
 
     public function accept(PostVersion $postVersion, PostVersionUpdateDto $dto): void
     {
-        if ($postVersion->post_id === null) {
+        $newPost = $postVersion->post_id === null;
+
+        if ($newPost) {
             $post = $this->postService->create($dto->slug ?? Str::slug($dto->title));
             $postVersion->post()->associate($post);
         }
 
         $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Accepted);
-        $postVersion->post->touch();
+        if (!$newPost) {
+            $postVersion->post->touch();
+        }
 
         $this->postVersionActionService->create(new PostVersionActionDto(
             $postVersion,

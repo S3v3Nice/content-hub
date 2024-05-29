@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import InputText from 'primevue/inputtext'
-import {computed, onUnmounted, type PropType, reactive, ref} from 'vue'
+import {computed, onUnmounted, type PropType, reactive, ref, watch} from 'vue'
 import type {EditorMenuItem} from '@/components/editor/types'
 import Button from 'primevue/button'
 import {BubbleMenu, EditorContent, type Extensions, FloatingMenu, useEditor} from '@tiptap/vue-3'
@@ -41,6 +41,7 @@ const props = defineProps({
 
 const toastHelper = new ToastHelper(useToast())
 const contentModel = defineModel<string>()
+let currentEditorContent = contentModel.value
 const addNodeMenu = ref<InstanceType<typeof EditorVerticalMenu>>()
 const linkOverlayPanel = ref<OverlayPanel>()
 const currentLink = reactive({
@@ -59,7 +60,8 @@ const editor = useEditor({
     extensions: props.extensions,
     content: contentModel.value,
     onUpdate: ({editor}) => {
-        contentModel.value = props.plainText ? editor.getText() : editor.getHTML()
+        currentEditorContent = props.plainText ? editor.getText() : editor.getHTML()
+        contentModel.value = currentEditorContent
     },
 })
 
@@ -188,8 +190,7 @@ const menuItems = computed<EditorMenuItem[]>(() => {
         displayName: nodes[key].displayName,
         icon: nodes[key].icon,
         shortcut: nodes[key].shortcut,
-        isVisible: editor.value!.schema.nodes['heading']
-            && !editor.value?.isActive(nodes[key].name, nodes[key].attributes),
+        isVisible: !!(editor.value!.schema.nodes['heading'] && !editor.value?.isActive(nodes[key].name, nodes[key].attributes)),
         callback: nodes[key].callback,
     }))
 
@@ -242,7 +243,7 @@ const menuItems = computed<EditorMenuItem[]>(() => {
                     displayName: nodes[key].displayName,
                     icon: nodes[key].icon,
                     shortcut: nodes[key].shortcut,
-                    isVisible: editor.value!.schema.nodes[key] && currentNodeInfo?.name !== key,
+                    isVisible: !!(editor.value!.schema.nodes[key] && currentNodeInfo?.name !== key),
                     callback: nodes[key].callback,
                 })),
             ],
@@ -273,6 +274,13 @@ document.addEventListener('scroll', onScroll)
 
 onUnmounted(() => {
     document.removeEventListener('scroll', onScroll)
+})
+
+watch(contentModel, (value) => {
+    if (currentEditorContent !== value) {
+        currentEditorContent = value ?? ''
+        editor.value!.commands.setContent(currentEditorContent)
+    }
 })
 
 function onScroll() {

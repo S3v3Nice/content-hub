@@ -8,6 +8,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 import Paginator, {type PageState} from 'primevue/paginator'
 import Avatar from 'primevue/avatar'
 import PostSingleActionsBar from '@/components/post/PostSingleActionsBar.vue'
+import Skeleton from 'primevue/skeleton'
 
 interface PostLoadResponseData {
     success: boolean
@@ -66,8 +67,22 @@ function wasPostUpdated(post: Post) {
         <p class="text-xl">Последние материалы</p>
     </div>
 
-    <div v-if="isLoading" class="flex items-center">
-        <ProgressSpinner/>
+    <div v-if="isLoading" class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div v-for="i in 6" class="flex flex-col surface-overlay rounded-lg border p-4 gap-3">
+            <Skeleton height="auto" class="aspect-video"/>
+            <div class="flex gap-2 items-center">
+                <Skeleton shape="circle" size="2rem"/>
+                <Skeleton width="6rem"/>
+                <Skeleton width="5rem" class="ml-auto"/>
+            </div>
+            <Skeleton height="3.5rem"/>
+            <Skeleton height="10rem"/>
+            <div class="flex items-center">
+                <Skeleton height="1.5rem" width="8rem"/>
+                <Skeleton height="1.5rem" width="3rem" class="ml-auto"/>
+            </div>
+
+        </div>
     </div>
     <template v-else>
         <div v-if="posts.length === 0" class="px-4">
@@ -76,20 +91,18 @@ function wasPostUpdated(post: Post) {
         <div v-else class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <div
                 v-for="post in posts"
-                class="post-card flex flex-col surface-overlay rounded-lg border p-4 gap-3"
+                class="flex flex-col surface-overlay rounded-lg border p-4 gap-3"
             >
                 <RouterLink :to="{name: 'post', params: {slug: post.slug}}">
                     <img :src="post.version!.cover_url" alt="" class="post-cover"/>
                 </RouterLink>
 
-                <div class="flex justify-between items-center">
-                    <div class="flex gap-2 items-center">
-                        <Avatar :label="post.version!.author!.username![0]" shape="circle"/>
-                        <p class="text-sm">{{ post.version!.author!.username }}</p>
-                    </div>
+                <div class="flex gap-2 items-center">
+                    <Avatar :label="post.version!.author!.username![0]" shape="circle"/>
+                    <p class="text-sm">{{ post.version!.author!.username }}</p>
                     <div
                         :title="`${wasPostUpdated(post) ? 'Обновлено' : 'Опубликовано'} ${getFullDate(post.updated_at)}`"
-                        class="text-muted text-xs lg:text-sm flex items-center gap-1.5"
+                        class="text-muted text-xs lg:text-sm flex items-center gap-1.5 ml-auto"
                     >
                         <span
                             class="text-[var(--gray-400)]"
@@ -100,7 +113,7 @@ function wasPostUpdated(post: Post) {
                     </div>
                 </div>
                 <RouterLink :to="{name: 'post', params: {slug: post.slug}}" class="flex flex-col gap-3">
-                    <div class="text-xl font-bold post-card-title transition-colors">
+                    <div class="text-xl font-bold transition-colors">
                         {{ post.version!.title }}
                     </div>
                     <p>{{ post.version!.description }}</p>

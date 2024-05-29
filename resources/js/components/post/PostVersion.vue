@@ -6,7 +6,7 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import {computed, onUnmounted, reactive, ref} from 'vue'
 import axios, {type AxiosError} from 'axios'
-import {getErrorMessageByCode, getPostVersionStatusInfo, ToastHelper} from '@/helpers'
+import {getAppUrl, getErrorMessageByCode, getPostVersionStatusInfo, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
 import {
     type PostVersion,
@@ -19,6 +19,7 @@ import Message from 'primevue/message'
 import slugify from '@sindresorhus/slugify'
 import Tag from 'primevue/tag'
 import {useAuthStore} from '@/stores/auth'
+import {useRouter} from 'vue-router'
 
 const props = defineProps({
     id: {
@@ -27,6 +28,7 @@ const props = defineProps({
     }
 })
 
+const router = useRouter()
 const authStore = useAuthStore()
 const toastHelper = new ToastHelper(useToast())
 const postVersion = ref<PostVersion>()
@@ -58,7 +60,9 @@ const slug = computed({
         customSlug.value = newValue
     }
 })
-const postUrl = computed(() => `${import.meta.env.VITE_APP_URL}/post/${slug.value}`)
+const postUrl = computed(() =>
+    new URL(router.resolve({name: 'post', params: {slug: slug.value}}).fullPath, getAppUrl()).href
+)
 
 loadPostVersion()
 document.addEventListener('scroll', onScroll)

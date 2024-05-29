@@ -57,7 +57,7 @@ function onLikeClick() {
 </script>
 
 <template>
-    <div>
+    <div class="flex gap-3">
         <div class="flex items-center">
             <Button
                 text
@@ -67,18 +67,26 @@ function onLikeClick() {
                 :icon="`fa-heart ${post.is_liked ? 'fa-solid' : 'fa-regular'}`"
                 @click="onLikeClick"
             />
-            <p :class="{'p-error': post.is_liked}">{{ post.like_count }}</p>
+            <p class="text-sm" :class="{'p-error': post.is_liked}">{{ post.like_count }}</p>
         </div>
 
-        <div class="flex items-center ml-auto">
-            <Button
-                text
-                rounded
-                title="Просмотры"
-                severity="secondary"
-                icon="fa-regular fa-eye"
-            />
-            <p>{{ post.view_count }}</p>
+        <div class="flex items-center">
+            <RouterLink :to="{name: 'post', params: {slug: post.slug}, hash: '#comments'}">
+                <Button
+                    text
+                    rounded
+                    title="Комментарии"
+                    severity="secondary"
+                    icon="fa-regular fa-comment"
+                />
+            </RouterLink>
+
+            <p class="text-sm">{{ post.comment_count }}</p>
+        </div>
+
+        <div class="flex items-center ml-auto gap-2">
+            <span title="Просмотры" class="fa-regular fa-eye text-[var(--text-color-secondary)]"/>
+            <p class="text-sm">{{ post.view_count }}</p>
         </div>
     </div>
 </template>

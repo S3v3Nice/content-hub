@@ -27,7 +27,23 @@ export interface Post {
     slug: string
     version?: PostVersion
     like_count: number
+    comment_count: number
     view_count: number
+    is_liked: boolean
+    created_at: string
+    updated_at: string
+}
+
+export interface PostComment {
+    id: bigint
+    parent_comment_id?: bigint | null
+    parent_comment?: PostComment | null
+    post_id: bigint
+    post?: Post
+    user_id: bigint | null
+    user?: User | null
+    content: string
+    like_count: number
     is_liked: boolean
     created_at: string
     updated_at: string

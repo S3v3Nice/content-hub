@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\PostCategoryController;
+use App\Http\Controllers\PostCommentController;
+use App\Http\Controllers\PostCommentLikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostLikeController;
 use App\Http\Controllers\PostVersionController;
@@ -30,6 +32,8 @@ Route::get('/post-categories', [PostCategoryController::class, 'get']);
 Route::get('/posts', [PostController::class, 'get']);
 Route::get('/posts/{slug}', [PostController::class, 'getBySlug']);
 
+Route::get('/posts/{postId}/comments', [PostCommentController::class, 'getByPostId'])->where('id', '[0-9]+');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/profile', [SettingsController::class, 'changeProfileSettings']);
     Route::put('/settings/security/username', [SettingsController::class, 'changeUsername']);
@@ -50,6 +54,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/posts/{postId}/likes', [PostLikeController::class, 'like'])->where('postId', '[0-9]+');
     Route::delete('/posts/{postId}/likes', [PostLikeController::class, 'unlike'])->where('postId', '[0-9]+');
+
+    Route::post('/posts/{postId}/comments', [PostCommentController::class, 'submit'])->where('id', '[0-9]+');
+    Route::delete('/post-comments/{id}', [PostCommentController::class, 'remove'])->where('id', '[0-9]+');
+    Route::patch('/post-comments/{id}', [PostCommentController::class, 'edit'])->where('id', '[0-9]+');
+
+    Route::post('/post-comments/{id}/likes', [PostCommentLikeController::class, 'like'])->where('id', '[0-9]+');
+    Route::delete('/post-comments/{id}/likes', [PostCommentLikeController::class, 'unlike'])->where('id', '[0-9]+');
 
     Route::middleware('moderator')->group(function () {
         Route::get('/users', [UserController::class, 'get']);

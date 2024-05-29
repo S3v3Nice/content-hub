@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-import {getErrorMessageByCode, ToastHelper} from '@/helpers'
+import {getErrorMessageByCode, getFullDate, getRelativeDate, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
 import {reactive, ref} from 'vue'
 import {type Post} from '@/types'
@@ -55,6 +55,10 @@ function onPageChange(event: PageState) {
         loadPosts()
     }
 }
+
+function wasPostUpdated(post: Post) {
+    return post.updated_at !== post.created_at
+}
 </script>
 
 <template>
@@ -83,13 +87,16 @@ function onPageChange(event: PageState) {
                         <Avatar :label="post.version!.author!.username![0]" shape="circle"/>
                         <p class="text-sm">{{ post.version!.author!.username }}</p>
                     </div>
-                    <div class="text-muted text-xs lg:text-sm flex items-center gap-1.5">
+                    <div
+                        :title="`${wasPostUpdated(post) ? 'Обновлено' : 'Опубликовано'} ${getFullDate(post.updated_at)}`"
+                        class="text-muted text-xs lg:text-sm flex items-center gap-1.5"
+                    >
                         <span
                             class="text-[var(--gray-400)]"
-                            :class="{'fa-regular fa-calendar': post.updated_at === post.created_at,
-                                     'fa-solid fa-clock-rotate-left': post.updated_at !== post.created_at}"
+                            :class="{'fa-regular fa-calendar': !wasPostUpdated(post),
+                                     'fa-solid fa-clock-rotate-left': wasPostUpdated(post)}"
                         />
-                        <p>{{ new Date(post.updated_at).toLocaleDateString() }}</p>
+                        <p>{{ getRelativeDate(post.updated_at) }}</p>
                     </div>
                 </div>
                 <RouterLink :to="{name: 'post', params: {slug: post.slug}}" class="flex flex-col gap-3">

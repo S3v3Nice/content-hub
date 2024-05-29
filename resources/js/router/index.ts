@@ -1,14 +1,72 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import {type Component, nextTick} from 'vue'
+import {type Component} from 'vue'
 import routes from '@/router/routes'
 import {useAuthStore} from '@/stores/auth'
 import {changeTitle} from '@/helpers'
 import AuthRequired from '@/components/auth/AuthRequired.vue'
 import NoPermission from '@/components/NoPermission.vue'
 
+let hashObserver: ResizeObserver | null = null
+let hashObserverDisconnectTimeout: NodeJS.Timeout | null = null
+
+function disconnectHashObserver() {
+    if (hashObserver) {
+        hashObserver.disconnect()
+        clearTimeout(hashObserverDisconnectTimeout)
+        hashObserver = null
+        hashObserverDisconnectTimeout = null
+    }
+}
+
+function getCssVariableValue(variable: string) {
+    return getComputedStyle(document.documentElement).getPropertyValue(variable).trim()
+}
+
+function remToPixels(remValue: string) {
+    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+    return parseFloat(remValue) * rootFontSize
+}
+
 const router = createRouter({
     history: createWebHistory(),
     routes: routes,
+    scrollBehavior(to, from, savedPosition) {
+        return new Promise((resolve) => {
+            if (to.hash) {
+                disconnectHashObserver()
+
+                hashObserver = new ResizeObserver(entries => {
+                    const element = entries[0].target.querySelector(to.hash)
+                    if (element) {
+                        disconnectHashObserver()
+                        const headerHeight = remToPixels(getCssVariableValue('--header-height'))
+                        resolve({el: to.hash, top: headerHeight + 16, behavior: 'smooth'})
+                    }
+                })
+                hashObserver.observe(document.body)
+
+                hashObserverDisconnectTimeout = setTimeout(disconnectHashObserver, 60000)
+            } else if (savedPosition) {
+                savedPosition.behavior = 'smooth'
+
+                const resizeObserver = new ResizeObserver(entries => {
+                    if (entries[0].target.clientHeight >= savedPosition.top + screen.height) {
+                        resolve(savedPosition)
+                        resizeObserver.disconnect()
+                        clearTimeout(timeoutId)
+                    }
+                })
+
+                resizeObserver.observe(document.body)
+                const timeoutId = setTimeout(() => {
+                    resolve(savedPosition)
+                    resizeObserver.disconnect()
+                }, 1000)
+            } else {
+                resolve({top: 0})
+            }
+        })
+    }
 })
 
 router.beforeEach((to, _from, next) => {
@@ -53,9 +111,9 @@ router.beforeEach((to, _from, next) => {
 })
 
 router.afterEach((to) => {
-    nextTick(() => {
+    if (to.meta.title) {
         changeTitle(to.meta.title)
-    }).then()
+    }
 })
 
 export default router

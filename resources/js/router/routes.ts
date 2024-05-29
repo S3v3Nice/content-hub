@@ -22,7 +22,7 @@ import PostCategory from '@/components/post/PostCategory.vue'
 
 declare module 'vue-router' {
     interface RouteMeta {
-        title: string
+        title?: string
         requiresAuth?: boolean
         requiresModerator?: boolean
         requiresAdmin?: boolean
@@ -185,33 +185,21 @@ const routes: RouteRecordRaw[] = [
             },
     },
     {
-        path: '/post/:slug',
+        path: '/post/:slug/',
         name: 'post',
         props: true,
         component: Post,
-        meta:
-            {
-                title: 'Материал',
-            },
     },
     {
         path: '/category/:slug',
         name: 'post-category',
         props: true,
         component: PostCategory,
-        meta:
-            {
-                title: 'Категория материалов',
-            },
     },
     {
         path: '/search',
         name: 'post-search',
         component: PostSearch,
-        meta:
-            {
-                title: 'Поиск материалов',
-            },
     },
     {
         path: '/:pathMatch(.*)*',

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $slug
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read int $comment_count
  * @property-read bool $is_liked
  * @property-read int $like_count
  * @property-read \App\Models\PostVersion $version
@@ -40,6 +41,7 @@ class Post extends Model
     protected $appends = [
         'version',
         'like_count',
+        'comment_count',
         'view_count',
         'is_liked',
     ];
@@ -56,6 +58,11 @@ class Post extends Model
     public function getLikeCountAttribute(): int
     {
         return PostLike::wherePostId($this->id)->count();
+    }
+
+    public function getCommentCountAttribute(): int
+    {
+        return PostComment::wherePostId($this->id)->count();
     }
 
     public function getViewCountAttribute(): int

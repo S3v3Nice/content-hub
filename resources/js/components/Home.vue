@@ -5,7 +5,7 @@ import Posts from '@/components/post/Posts.vue'
 <template>
     <Posts>
         <template v-slot:title>
-            <p class="text-xl">Последние материалы</p>
+            <p class="text-xl">Все материалы</p>
         </template>
     </Posts>
 </template>

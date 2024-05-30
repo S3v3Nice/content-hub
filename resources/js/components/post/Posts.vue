@@ -6,6 +6,8 @@ import {type Post} from '@/types'
 import axios, {type AxiosError} from 'axios'
 import Paginator, {type PageState} from 'primevue/paginator'
 import Avatar from 'primevue/avatar'
+import Button from 'primevue/button'
+import Dropdown, {type DropdownPassThroughOptions} from 'primevue/dropdown'
 import PostSingleActionsBar from '@/components/post/PostSingleActionsBar.vue'
 import Skeleton from 'primevue/skeleton'
 import {useRoute} from 'vue-router'
@@ -20,6 +22,19 @@ interface PostLoadResponseData {
         current_page: number
         total_pages: number
     }
+}
+
+enum PostSortType {
+    LATEST,
+    POPULAR
+}
+
+enum PostLoadPeriod {
+    DAY,
+    WEEK,
+    MONTH,
+    YEAR,
+    ALL_TIME
 }
 
 const props = defineProps({
@@ -38,7 +53,28 @@ const totalRecordsCount = ref(0)
 const loadData = reactive({
     page: 1,
     per_page: 12,
+    sort_type: PostSortType.LATEST,
+    period: PostLoadPeriod.ALL_TIME,
 })
+
+const periodDropdownItems = [
+    {label: '24 часа', value: PostLoadPeriod.DAY},
+    {label: 'Неделя', value: PostLoadPeriod.WEEK},
+    {label: 'Месяц', value: PostLoadPeriod.MONTH},
+    {label: 'Год', value: PostLoadPeriod.YEAR},
+    {label: 'Всё время', value: PostLoadPeriod.ALL_TIME},
+]
+const periodDropdownPassThroughOptions: DropdownPassThroughOptions = {
+    root: {
+        style: 'background: none; border: none; box-shadow: none; outline: none;'
+    },
+    input: {
+        style: 'padding: 0.25rem 0.5rem; font-size: 0.875rem;',
+    },
+    trigger: {
+        style: 'width: 2rem;'
+    }
+}
 
 watch(route, () => {
     loadPosts()
@@ -70,6 +106,20 @@ function onPageChange(event: PageState) {
     }
 }
 
+function onSortTypeSelect(type: PostSortType) {
+    loadData.sort_type = type
+    loadData.page = 1
+    switch (type) {
+        case PostSortType.LATEST:
+            loadData.period = PostLoadPeriod.ALL_TIME
+            break
+        case PostSortType.POPULAR:
+            loadData.period = PostLoadPeriod.WEEK
+            break
+    }
+    loadPosts()
+}
+
 function wasPostUpdated(post: Post) {
     return post.updated_at !== post.created_at
 }
@@ -80,10 +130,39 @@ function getTotalRecordsCount() {
 </script>
 
 <template>
-    <div class="surface-overlay rounded-lg border p-4 mb-3">
+    <div class="flex flex-col gap-4 surface-overlay rounded-lg border p-4 mb-3">
         <slot name="title">
             <p class="text-xl">Материалы</p>
         </slot>
+        <div class="flex flex-col xs:flex-row gap-4">
+            <div class="flex gap-2">
+                <Button
+                    label="Свежие"
+                    icon="fa-regular fa-clock"
+                    size="small"
+                    :severity="loadData.sort_type === PostSortType.LATEST ? 'primary' : 'secondary'"
+                    @click="onSortTypeSelect(PostSortType.LATEST)"
+                />
+                <Button
+                    label="Популярные"
+                    icon="fa-solid fa-fire"
+                    size="small"
+                    :severity="loadData.sort_type === PostSortType.POPULAR ? 'primary' : 'secondary'"
+                    @click="onSortTypeSelect(PostSortType.POPULAR)"
+                />
+            </div>
+            <Dropdown
+                v-if="loadData.sort_type === PostSortType.POPULAR"
+                v-model="loadData.period"
+                :options="periodDropdownItems"
+                option-label="label"
+                option-value="value"
+                scroll-height="14rem"
+                :pt="periodDropdownPassThroughOptions"
+                class="self-start xs:self-center"
+                @update:model-value="loadPosts"
+            />
+        </div>
     </div>
 
     <div v-if="isLoading" class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -145,7 +224,7 @@ function getTotalRecordsCount() {
         :rows="loadData.per_page"
         :totalRecords="totalRecordsCount"
         @page="onPageChange"
-        class="mt-3"
+        class="mt-3 rounded-lg border"
         :class="{'hidden': isLoading || posts.length === 0}"
     />
 </template>

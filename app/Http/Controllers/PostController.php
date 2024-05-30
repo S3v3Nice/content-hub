@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder as Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -25,8 +26,8 @@ class PostController extends Controller
             'term' => ['string', 'nullable'],
             'page' => ['integer'],
             'per_page' => ['integer'],
-            'sort_field' => ['string', new ColumnExistsRule(Post::getModel()->getTable())],
-            'sort_order' => ['integer', 'min:-1', 'max:1'],
+            'sort_type' => ['integer', 'min:0', 'max:1'],
+            'period' => ['integer', 'min:0', 'max:4'],
         ]);
 
         if ($validator->fails()) {
@@ -34,20 +35,31 @@ class PostController extends Controller
         }
 
         $perPage = $request->integer('per_page', 10);
-        $sortOrder = $request->integer('sort_order', -1);
+        $sortType = PostSortType::from($request->integer('sort_type'));
+        $period = PostLoadPeriod::from($request->integer('period'));
 
-        if ($sortOrder === 0) {
-            $sortField = 'updated_at';
-            $sortDirection = 'desc';
-        } else {
-            $sortField = $request->string('sort_field', 'updated_at');
-            $sortDirection = $sortOrder === -1 ? 'desc' : 'asc';
+        $postsQuery = match ($sortType) {
+            PostSortType::Latest => Post::orderBy('updated_at', 'desc'),
+            PostSortType::Popular => Post::withCount(['likes', 'comments', 'views'])
+                ->orderByRaw('(likes_count * 2) + (comments_count * 3) + views_count DESC')
+                ->orderBy('updated_at', 'desc'),
+        };
+
+        $startDate = match ($period) {
+            PostLoadPeriod::Day => Carbon::now()->subDay(),
+            PostLoadPeriod::Week => Carbon::now()->subWeek(),
+            PostLoadPeriod::Month => Carbon::now()->subMonth(),
+            PostLoadPeriod::Year => Carbon::now()->subYear(),
+            PostLoadPeriod::AllTime => null,
+        };
+
+        if ($startDate !== null) {
+            $postsQuery->where('updated_at', '>=', $startDate);
         }
 
         $categoryId = $request->integer('category_id', -1);
         $searchTerm = $request->string('term');
 
-        $postsQuery = Post::orderBy($sortField, $sortDirection);
         if ($searchTerm->isNotEmpty() || $categoryId !== -1) {
             $postsQuery->whereHas('versions', function (Builder $query) use ($searchTerm, $categoryId) {
                 $query->whereIn('id', function (QueryBuilder $subQuery) {

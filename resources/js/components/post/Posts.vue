@@ -168,16 +168,38 @@ function getTotalRecordsCount() {
     <div v-if="isLoading" class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <div v-for="i in 6" class="flex flex-col surface-overlay rounded-lg border p-4 gap-3">
             <Skeleton height="auto" class="aspect-video"/>
-            <div class="flex gap-2 items-center">
-                <Skeleton shape="circle" size="2rem"/>
-                <Skeleton width="6rem"/>
-                <Skeleton width="5rem" class="ml-auto"/>
-            </div>
-            <Skeleton height="3.5rem"/>
-            <Skeleton height="10rem"/>
-            <div class="flex items-center">
-                <Skeleton height="1.5rem" width="8rem"/>
-                <Skeleton height="1.5rem" width="3rem" class="ml-auto"/>
+            <div class="flex flex-col gap-4">
+                <div class="flex gap-2 items-center">
+                    <Skeleton shape="circle" size="2rem"/>
+                    <Skeleton height="0.6rem" width="6rem"/>
+                    <div class="flex gap-1 ml-auto items-center">
+                        <Skeleton shape="circle" size="1rem"/>
+                        <Skeleton height="0.6rem" width="4.5rem"/>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <Skeleton height="1.25rem"/>
+                    <Skeleton height="1.25rem" width="60%"/>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <Skeleton height="0.7rem" width="100%"/>
+                    <Skeleton height="0.7rem" width="95%"/>
+                    <Skeleton height="0.7rem" width="90%"/>
+                    <Skeleton height="0.7rem" width="80%"/>
+                    <Skeleton height="0.7rem" width="85%"/>
+                    <Skeleton height="0.7rem" width="95%"/>
+                    <Skeleton height="0.7rem" width="40%"/>
+                </div>
+                <div class="flex gap-2">
+                    <div v-for="i in 2" class="flex gap-1 items-center">
+                        <Skeleton shape="circle" size="1.25rem"/>
+                        <Skeleton height="0.6rem" width="2rem"/>
+                    </div>
+                    <div class="flex gap-1 ml-auto items-center">
+                        <Skeleton shape="circle" size="1.25rem"/>
+                        <Skeleton height="0.6rem" width="3rem"/>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -256,13 +256,25 @@ function onNewCommentEditorClick() {
 
                 <div ref="commentsBlock">
                     <div v-if="isLoadingComments" class="flex flex-col gap-6 mt-8">
-                        <div v-for="i in Math.min(post.comment_count, 5)" class="flex flex-col gap-2">
-                            <div class="flex gap-2">
-                                <Skeleton shape="circle" size="2rem"/>
-                                <div class="flex flex-col flex-1 gap-2">
-                                    <Skeleton width="10rem"/>
-                                    <Skeleton height="3rem"/>
-                                    <Skeleton width="7rem"/>
+                        <div v-for="i in Math.min(post.comment_count, 5)" class="flex gap-2">
+                            <Skeleton shape="circle" size="2rem"/>
+                            <div class="flex flex-col flex-1 gap-4">
+                                <div class="flex gap-2 items-center">
+                                    <Skeleton height="0.6rem" width="5rem"/>
+                                    <Skeleton height="0.6rem" width="5rem"/>
+                                    <Skeleton shape="circle" size="1rem"/>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <Skeleton height="0.7rem" width="70%"/>
+                                    <Skeleton height="0.7rem"/>
+                                    <Skeleton height="0.7rem" width="50%"/>
+                                </div>
+                                <div class="flex gap-2 items-center">
+                                    <div class="flex gap-1 items-center">
+                                        <Skeleton shape="circle" size="1.25rem"/>
+                                        <Skeleton height="0.6rem" width="1.5rem"/>
+                                    </div>
+                                    <Skeleton height="0.6rem" width="5rem"/>
                                 </div>
                             </div>
                         </div>

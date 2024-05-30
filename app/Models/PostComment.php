@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -17,6 +18,10 @@ use Illuminate\Support\Facades\Auth;
  * @property string $content
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read bool $is_liked
+ * @property-read int $like_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PostCommentLike> $likes
+ * @property-read int|null $likes_count
  * @property-read PostComment|null $parentComment
  * @property-read \App\Models\Post $post
  * @property-read \App\Models\User|null $user
@@ -60,14 +65,19 @@ class PostComment extends Model
         return $this->belongsTo(PostComment::class, 'parent_comment_id');
     }
 
+    public function likes(): HasMany
+    {
+        return $this->hasMany(PostCommentLike::class, 'comment_id');
+    }
+
     public function getLikeCountAttribute(): int
     {
-        return PostCommentLike::whereCommentId($this->id)->count();
+        return $this->likes()->count();
     }
 
     public function getIsLikedAttribute(): bool
     {
         $user = Auth::user();
-        return $user !== null && PostCommentLike::whereCommentId($this->id)->whereUserId($user->id)->exists();
+        return $user !== null && $this->likes()->where('user_id', $user->id)->exists();
     }
 }

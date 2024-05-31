@@ -6,6 +6,7 @@ import useThemeManager from '@/theme-manager'
 import Button from 'primevue/button'
 import Avatar from 'primevue/avatar'
 import Menu from 'primevue/menu'
+import OverlayPanel from 'primevue/overlaypanel'
 import Sidebar from 'primevue/sidebar'
 import InputSwitch from 'primevue/inputswitch'
 import {useRouter} from 'vue-router'
@@ -79,6 +80,8 @@ const userMenuItems = computed<MenuItem[]>(() => [
     },
 ])
 
+const searchOverlayPanel = ref<OverlayPanel>()
+const isMobileSearchPanel = ref(false)
 const searchTerm = ref('')
 
 onMounted(() => {
@@ -87,6 +90,9 @@ onMounted(() => {
 
 function onScroll() {
     userMenu.value?.hide()
+    if (searchOverlayPanel.value?.['visible']) {
+        searchOverlayPanel.value?.alignOverlay()
+    }
 }
 
 function toggleUserMenu(event: Event) {
@@ -113,102 +119,117 @@ function logout() {
 
 function onSearch() {
     router.push({name: 'post-search', query: {term: searchTerm.value}, force: true})
+    isMobileSearchPanel.value = false
 }
 </script>
 
 <template>
-    <div class="header-fixed surface-overlay p-2 lg:pl-0 lg:pr-0 border-b">
-        <div class="page-container flex h-full gap-4">
-            <Button
-                icon="fa-solid fa-bars"
-                text
-                severity="secondary"
-                aria-haspopup="true"
-                aria-controls="user-menu"
-                aria-label="Меню навигации"
-                @click="isNavigationSidebarVisible = true"
-            />
-
-            <RouterLink :to="{name: 'home'}">
-                <img v-if="themeManager.isLight()" src="/images/logo.svg" alt="Logo" class="h-full">
-                <img v-else src="/images/logo-dark.svg" alt="Logo" class="h-full">
-            </RouterLink>
-
-            <div class="flex ml-auto gap-4">
-                <form @submit.prevent="onSearch">
-                    <InputGroup>
-                        <InputText v-model="searchTerm" placeholder="Поиск" autocomplete="off"/>
-                        <Button
-                            title="Найти"
-                            icon="fa-solid fa-search"
-                            outlined
-                            type="submit"
-                        />
-                    </InputGroup>
-                </form>
-
+    <div class="header-fixed flex flex-col">
+        <div class="h-[var(--header-height)] surface-overlay p-2 lg:px-0 border-b flex items-center">
+            <div class="page-container flex gap-4 h-full items-center">
                 <Button
-                    v-if="!authStore.isAuthenticated"
-                    icon="fa-regular fa-user"
-                    @click="toggleUserMenu"
+                    icon="fa-solid fa-bars"
+                    text
+                    severity="secondary"
                     aria-haspopup="true"
                     aria-controls="user-menu"
-                    aria-label="Меню пользователя"
+                    aria-label="Меню навигации"
+                    @click="isNavigationSidebarVisible = true"
                 />
-                <Button
-                    v-else
-                    unstyled
-                    @click="toggleUserMenu"
-                    aria-haspopup="true"
-                    aria-controls="user-menu"
-                    aria-label="Меню пользователя"
-                >
-                    <Avatar :label="authStore.username![0]" shape="circle"/>
-                </Button>
+
+                <RouterLink :to="{name: 'home'}" class="h-[70%] sm:h-[90%]">
+                    <img v-if="themeManager.isLight()" src="/images/logo.svg" alt="Logo" class="h-full">
+                    <img v-else src="/images/logo-dark.svg" alt="Logo" class="h-full">
+                </RouterLink>
+
+                <div class="flex ml-auto gap-4 items-center">
+                    <form @submit.prevent="onSearch" class="hidden sm:block">
+                        <InputGroup>
+                            <InputText v-model="searchTerm" placeholder="Поиск" autocomplete="off"/>
+                            <Button title="Найти" icon="fa-solid fa-search" outlined type="submit"/>
+                        </InputGroup>
+                    </form>
+
+                    <Button
+                        :title="isMobileSearchPanel ? `Скрыть панель поиска` : `Показать панель поиска`"
+                        icon="fa-solid fa-search"
+                        :text="!isMobileSearchPanel"
+                        severity="secondary"
+                        class="block sm:hidden"
+                        @click="isMobileSearchPanel = !isMobileSearchPanel"
+                    />
+
+                    <Button
+                        v-if="!authStore.isAuthenticated"
+                        icon="fa-regular fa-user"
+                        @click="toggleUserMenu"
+                        aria-haspopup="true"
+                        aria-controls="user-menu"
+                        aria-label="Меню пользователя"
+                    />
+                    <Button
+                        v-else
+                        unstyled
+                        @click="toggleUserMenu"
+                        aria-haspopup="true"
+                        aria-controls="user-menu"
+                        aria-label="Меню пользователя"
+                    >
+                        <Avatar :label="authStore.username![0]" shape="circle"/>
+                    </Button>
+                </div>
             </div>
-        </div>
 
-        <Sidebar v-model:visible="isNavigationSidebarVisible" header="Навигация">
-            <RouterLink
-                v-for="category in categoryStore.categories"
-                :to="{name: 'post-category', params: {slug: category.slug}}"
-                class="flex flex-col"
+            <Sidebar v-model:visible="isNavigationSidebarVisible" header="Навигация">
+                <RouterLink
+                    v-for="category in categoryStore.categories"
+                    :to="{name: 'post-category', params: {slug: category.slug}}"
+                    class="flex flex-col"
+                >
+                    <Button severity="secondary" text @click="isNavigationSidebarVisible = false">
+                        {{ category.name }}
+                    </Button>
+                </RouterLink>
+            </Sidebar>
+
+            <Menu
+                ref="userMenu"
+                id="user-menu"
+                :model="userMenuItems"
+                :popup="true"
+                @focus="() => nextTick(() => (userMenu!['focusedOptionIndex'] = -1))"
             >
-                <Button severity="secondary" text @click="isNavigationSidebarVisible = false">
-                    {{ category.name }}
-                </Button>
-            </RouterLink>
-        </Sidebar>
-
-        <Menu
-            ref="userMenu"
-            id="user-menu"
-            :model="userMenuItems"
-            :popup="true"
-            @focus="() => nextTick(() => (userMenu!['focusedOptionIndex'] = -1))"
-        >
-            <template v-if="authStore.isAuthenticated" #start>
+                <template v-if="authStore.isAuthenticated" #start>
             <span class="flex p-2 gap-2 items-center">
                 <Avatar size="large" :label="authStore.username![0]" shape="circle"/>
                 <span>{{ authStore.username }}</span>
             </span>
-            </template>
-            <template #item="{ item, props }">
-                <Component
-                    :is="item.route ? 'RouterLink' : 'a'"
-                    :to="{ name: item.route }"
-                    class="flex space-x-5 justify-between"
-                    v-bind="props.action"
-                    @click.stop="invokeUserMenuCommand(item)"
-                >
-                    <div>
-                        <span class="menu-item-icon" :class="item.icon"/>
-                        <span class="ml-2">{{ item.label }}</span>
-                    </div>
-                    <InputSwitch v-if="item.switchValue != undefined" :model-value="item.switchValue"></InputSwitch>
-                </Component>
-            </template>
-        </Menu>
+                </template>
+                <template #item="{ item, props }">
+                    <Component
+                        :is="item.route ? 'RouterLink' : 'a'"
+                        :to="{ name: item.route }"
+                        class="flex space-x-5 justify-between"
+                        v-bind="props.action"
+                        @click.stop="invokeUserMenuCommand(item)"
+                    >
+                        <div>
+                            <span class="menu-item-icon" :class="item.icon"/>
+                            <span class="ml-2">{{ item.label }}</span>
+                        </div>
+                        <InputSwitch v-if="item.switchValue != undefined" :model-value="item.switchValue"></InputSwitch>
+                    </Component>
+                </template>
+            </Menu>
+        </div>
+
+        <form v-if="isMobileSearchPanel" class="block sm:hidden bg-[var(--surface-50)] border-b p-2"
+              @submit.prevent="onSearch">
+            <InputGroup>
+                <InputText v-model="searchTerm" placeholder="Поиск" autocomplete="off"/>
+                <Button title="Найти" icon="fa-solid fa-search" outlined type="submit"/>
+            </InputGroup>
+        </form>
     </div>
 </template>
 

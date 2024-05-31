@@ -9,6 +9,7 @@ use App\Models\PostVersionStatus;
 use App\Services\Dto\NewPostVersionDto;
 use App\Services\Dto\PostVersionActionDto;
 use App\Services\Dto\PostVersionUpdateDto;
+use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -29,13 +30,17 @@ class PostVersionService
 
     public function submitNew(NewPostVersionDto $dto): PostVersion
     {
-        $postVersion = $this->createPostVersion($dto, PostVersionStatus::Pending);
+        $now = Carbon::now();
+        $postVersion = $this->createPostVersion($dto, PostVersionStatus::Pending, $now);
 
-        $this->postVersionActionService->create(new PostVersionActionDto(
-            $postVersion,
-            Auth::user(),
-            PostVersionActionType::Submit
-        ));
+        $this->postVersionActionService->create(
+            new PostVersionActionDto(
+                $postVersion,
+                Auth::user(),
+                PostVersionActionType::Submit
+            ),
+            $now
+        );
 
         return $postVersion;
     }
@@ -47,61 +52,77 @@ class PostVersionService
 
     public function submit(PostVersion $postVersion, PostVersionUpdateDto $dto): void
     {
-        $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Pending);
+        $now = Carbon::now();
+        $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Pending, $now);
 
-        $this->postVersionActionService->create(new PostVersionActionDto(
-            $postVersion,
-            Auth::user(),
-            PostVersionActionType::Submit
-        ));
+        $this->postVersionActionService->create(
+            new PostVersionActionDto(
+                $postVersion,
+                Auth::user(),
+                PostVersionActionType::Submit
+            ),
+            $now
+        );
     }
 
     public function requestChanges(PostVersion $postVersion, PostVersionUpdateDto $dto): void
     {
-        $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Draft);
+        $now = Carbon::now();
+        $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Draft, $now);
 
-        $this->postVersionActionService->create(new PostVersionActionDto(
-            $postVersion,
-            Auth::user(),
-            PostVersionActionType::RequestChanges,
-            $dto->actionDetails
-        ));
+        $this->postVersionActionService->create(
+            new PostVersionActionDto(
+                $postVersion,
+                Auth::user(),
+                PostVersionActionType::RequestChanges,
+                $dto->actionDetails
+            ),
+            $now
+        );
     }
 
     public function accept(PostVersion $postVersion, PostVersionUpdateDto $dto): void
     {
-        $newPost = $postVersion->post_id === null;
+        $now = Carbon::now();
+        $isNewPost = $postVersion->post_id === null;
 
-        if ($newPost) {
-            $post = $this->postService->create($dto->slug ?? Str::slug($dto->title));
+        if ($isNewPost) {
+            $post = $this->postService->create($dto->slug ?? Str::slug($dto->title), $now);
             $postVersion->post()->associate($post);
         }
 
-        $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Accepted);
-        if (!$newPost) {
-            $postVersion->post->touch();
+        $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Accepted, $now);
+        if (!$isNewPost) {
+            $postVersion->post->update(['updated_at' => $now]);
         }
 
-        $this->postVersionActionService->create(new PostVersionActionDto(
-            $postVersion,
-            Auth::user(),
-            PostVersionActionType::Accept
-        ));
+        $this->postVersionActionService->create(
+            new PostVersionActionDto(
+                $postVersion,
+                Auth::user(),
+                PostVersionActionType::Accept
+            ),
+            $now
+        );
     }
 
     public function reject(PostVersion $postVersion, PostVersionUpdateDto $dto): void
     {
-        $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Rejected);
+        $now = Carbon::now();
+        $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Rejected, $now);
 
-        $this->postVersionActionService->create(new PostVersionActionDto(
-            $postVersion,
-            Auth::user(),
-            PostVersionActionType::Reject,
-            $dto->actionDetails
-        ));
+        $this->postVersionActionService->create(
+            new PostVersionActionDto(
+                $postVersion,
+                Auth::user(),
+                PostVersionActionType::Reject,
+                $dto->actionDetails
+            ),
+            $now
+        );
     }
 
-    private function createPostVersion(NewPostVersionDto $dto, PostVersionStatus $status): PostVersion
+    private function createPostVersion(NewPostVersionDto $dto, PostVersionStatus $status, ?Carbon $dateTime = null): PostVersion
     {
         $postVersion = PostVersion::make();
         $postVersion->author()->associate($dto->author);
@@ -111,12 +132,16 @@ class PostVersionService
         $postVersion->description = $dto->description;
         $postVersion->content = $dto->content;
         $postVersion->status = $status;
+        if ($dateTime !== null) {
+            $postVersion->created_at = $dateTime;
+            $postVersion->updated_at = $dateTime;
+        }
         $postVersion->save();
 
         return $postVersion;
     }
 
-    private function updatePostVersion(PostVersion $postVersion, PostVersionUpdateDto $dto, PostVersionStatus $status): void
+    private function updatePostVersion(PostVersion $postVersion, PostVersionUpdateDto $dto, PostVersionStatus $status, ?Carbon $dateTime = null): void
     {
         if ($dto->category_id !== null && $postVersion->category_id !== $dto->category_id) {
             $postVersion->category()->associate(PostCategory::find($dto->category_id));
@@ -132,6 +157,9 @@ class PostVersionService
         }
         if ($dto->content !== null) {
             $postVersion->content = $dto->content;
+        }
+        if ($dateTime !== null) {
+            $postVersion->updated_at = $dateTime;
         }
 
         $postVersion->status = $status;

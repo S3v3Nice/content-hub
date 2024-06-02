@@ -59,6 +59,10 @@ class PostVersion extends Model
         'status',
     ];
 
+    protected $hidden = [
+        'assigned_moderator_id'
+    ];
+
     protected $casts = [
         'status' => PostVersionStatus::class,
     ];

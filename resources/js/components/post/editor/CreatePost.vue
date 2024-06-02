@@ -8,7 +8,9 @@ import {useToast} from 'primevue/usetoast'
 import OverlayPanel from 'primevue/overlaypanel'
 import {useRouter} from 'vue-router'
 import type {PostVersion} from '@/types'
+import {useAuthStore} from '@/stores/auth'
 
+const authStore = useAuthStore()
 const toastHelper = new ToastHelper(useToast())
 const router = useRouter()
 const isSubmitting = ref(false)
@@ -72,8 +74,11 @@ function createDraft() {
 </script>
 
 <template>
-    <PostEditor v-model="postVersion" editor-title="Создание материала">
-        <template v-slot:actions>
+    <PostEditor v-model="postVersion" :author="authStore.user">
+        <template v-slot:header>
+            <p class="text-2xl font-semibold">Создание материала</p>
+        </template>
+        <template v-slot:sidebar>
             <div class="flex flex-col gap-2">
                 <Button
                     icon="fa-solid fa-check"

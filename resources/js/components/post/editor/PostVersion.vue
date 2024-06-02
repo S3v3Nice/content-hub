@@ -6,13 +6,22 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import {computed, onUnmounted, reactive, ref} from 'vue'
 import axios, {type AxiosError} from 'axios'
-import {getAppUrl, getErrorMessageByCode, getPostVersionStatusInfo, ToastHelper} from '@/helpers'
+import {
+    getAppUrl,
+    getErrorMessageByCode,
+    getFullDate,
+    getPostVersionStatusInfo,
+    getRelativeDate,
+    ToastHelper
+} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
 import {
     type PostVersion,
     type PostVersionActionReject,
     type PostVersionActionRequestChanges,
-    PostVersionStatus
+    PostVersionStatus,
+    type User,
+    UserRole
 } from '@/types'
 import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
@@ -20,6 +29,8 @@ import slugify from '@sindresorhus/slugify'
 import Tag from 'primevue/tag'
 import {useAuthStore} from '@/stores/auth'
 import {useRouter} from 'vue-router'
+import Avatar from 'primevue/avatar'
+import Dropdown, {type DropdownPassThroughOptions} from 'primevue/dropdown'
 
 const props = defineProps({
     id: {
@@ -32,6 +43,8 @@ const router = useRouter()
 const authStore = useAuthStore()
 const toastHelper = new ToastHelper(useToast())
 const postVersion = ref<PostVersion>()
+const moderators = ref<User[]>()
+const isLoadingModerators = ref(false)
 
 const isLoading = ref(false)
 const isSubmitting = ref(false)
@@ -40,6 +53,7 @@ const isAccepting = ref(false)
 const isRejecting = ref(false)
 const isRequestingChanges = ref(false)
 
+const moderatorDropdown = ref<Dropdown>()
 const submitOverlayPanel = ref<OverlayPanel>()
 const acceptOverlayPanel = ref<OverlayPanel>()
 const rejectOverlayPanel = ref<OverlayPanel>()
@@ -49,6 +63,35 @@ const rejectDetails = reactive<PostVersionActionReject>({reason: ''})
 const requestChangesDetails = reactive<PostVersionActionRequestChanges>({message: ''})
 const customSlug = ref<string>()
 
+const moderatorOptions = computed(() => {
+    if (!moderators.value) {
+        const options = []
+        if (postVersion.value!.assigned_moderator) {
+            options.push(postVersion.value!.assigned_moderator)
+        }
+        if (postVersion.value!.assigned_moderator_id !== authStore.id) {
+            options.push(authStore.user!)
+        }
+
+        return options
+    }
+
+    const firstModeratorIds = [postVersion.value!.assigned_moderator_id, authStore.id]
+
+    return moderators.value.sort((a: User, b: User) => {
+        if (firstModeratorIds.includes(a.id) && firstModeratorIds.includes(b.id)) {
+            return firstModeratorIds.indexOf(a.id) - firstModeratorIds.indexOf(b.id)
+        } else if (firstModeratorIds.includes(a.id)) {
+            return -1
+        } else if (firstModeratorIds.includes(b.id)) {
+            return 1
+        } else {
+            return a.username!.localeCompare(b.username!)
+        }
+    })
+})
+const isFirstVersion = computed(() => !postVersion.value!.post || postVersion.value!.updated_at === postVersion.value!.post.created_at)
+const wasUpdated = computed(() => postVersion.value!.updated_at !== postVersion.value!.created_at)
 const isReviewing = computed(() => authStore.isModerator && postVersion.value!.status === PostVersionStatus.PENDING)
 const isOwnDraft = computed(() => postVersion.value!.author_id === authStore.id && postVersion.value!.status === PostVersionStatus.DRAFT)
 const postVersionStatusInfo = computed(() => getPostVersionStatusInfo(postVersion.value?.status!))
@@ -64,6 +107,24 @@ const postUrl = computed(() =>
     new URL(router.resolve({name: 'post', params: {slug: slug.value}}).fullPath, getAppUrl()).href
 )
 
+const moderatorDropdownPassThroughOptions: DropdownPassThroughOptions = {
+    root: {
+        style: 'background: none; border: none; box-shadow: none; outline: none;'
+    },
+    input: {
+        style: 'padding: 0; font-size: 0.875rem;',
+    },
+    trigger: {
+        style: 'width: 2rem;'
+    },
+    panel: {
+        style: 'z-index: 100;'
+    },
+    item: {
+        style: 'padding: 0;'
+    }
+}
+
 loadPostVersion()
 document.addEventListener('scroll', onScroll)
 
@@ -72,6 +133,8 @@ onUnmounted(() => {
 })
 
 function onScroll() {
+    moderatorDropdown.value?.hide()
+
     const overlayPanels = [submitOverlayPanel, acceptOverlayPanel, rejectOverlayPanel, requestChangesOverlayPanel]
     for (const overlayPanel of overlayPanels) {
         if (overlayPanel.value?.['visible']) {
@@ -87,12 +150,51 @@ function loadPostVersion() {
         const version: PostVersion = response.data
 
         if (Object.keys(version).length !== 0) {
-            postVersion.value = response.data
+            postVersion.value = version
         }
     }).catch((error: AxiosError) => {
         toastHelper.error(getErrorMessageByCode(error.response!.status))
     }).finally(() => {
         isLoading.value = false
+    })
+}
+
+function loadModerators() {
+    if (moderators.value) {
+        return
+    }
+
+    isLoadingModerators.value = true
+
+    axios.get(`/api/users`, {params: {roles: [UserRole.MODERATOR, UserRole.ADMIN]}}).then((response) => {
+        moderators.value = response.data.records
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
+    }).finally(() => {
+        isLoadingModerators.value = false
+    })
+}
+
+function assignModerator(moderator: User) {
+    if (moderator.id === postVersion.value!.assigned_moderator_id) {
+        return
+    }
+
+    postVersion.value!.assigned_moderator = moderator
+
+    axios.put(
+        `/api/post-versions/${props.id}/assigned-moderator`,
+        {moderator_id: moderator.id}
+    ).then((response) => {
+        if (response.data.success) {
+            toastHelper.success(`Назначен модератор ${moderator.username}.`)
+        } else {
+            if (response.data.message) {
+                toastHelper.error(response.data.message)
+            }
+        }
+    }).catch((error: AxiosError) => {
+        toastHelper.error(getErrorMessageByCode(error.response!.status))
     })
 }
 
@@ -243,58 +345,195 @@ function requestChanges() {
         <PostEditor
             v-if="postVersion"
             v-model="postVersion"
-            editor-title="Заявка на публикацию"
+            :author="postVersion.author"
             :editable="isOwnDraft || isReviewing"
         >
-            <template v-slot:actions>
-                <div class="mb-3 space-y-1">
-                    <p class="text-xs text-muted">Автор</p>
-                    <p>{{ postVersion.author_id === authStore.id ? 'Вы' : postVersion.author!.username }}</p>
+            <template v-slot:header>
+                <div class="flex flex-col gap-6">
+                    <div class="flex flex-col sm:flex-row gap-2 sm:w-full items-start sm:items-center">
+                        <p class="text-2xl font-semibold">Заявка на публикацию</p>
+                        <div class="flex gap-4 sm:ml-auto">
+                            <Tag
+                                :title="isFirstVersion
+                                    ? 'Запрос на добавление нового материала'
+                                    : 'Запрос на внесение изменений в уже опубликованный материал'"
+                                :value="isFirstVersion ? 'Новый материал' : 'Обновление'"
+                                :severity="isFirstVersion ? 'info' : 'primary'"
+                            />
+                            <div
+                                :title="`${wasUpdated ? 'Обновлено' : 'Создано'} ${getFullDate(postVersion!.updated_at)}`"
+                                class="text-muted text-xs lg:text-sm flex items-center gap-1.5"
+                            >
+                            <span
+                                class="text-[var(--gray-400)]"
+                                :class="{'fa-regular fa-calendar': !wasUpdated,
+                                         'fa-solid fa-clock-rotate-left': wasUpdated}"
+                            />
+                                <p>{{ getRelativeDate(postVersion!.updated_at) }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="grid grid-cols-[max-content,auto] justify-items-start items-center gap-y-2 gap-x-4 lg:hidden
+                               border-t pt-3"
+                    >
+                        <div
+                            v-if="authStore.isModerator && postVersion!.status === PostVersionStatus.PENDING"
+                            class="header-details-item"
+                        >
+                            <p class="header-details-item-header">Модератор</p>
+                            <Dropdown
+                                v-model="postVersion!.assigned_moderator_id"
+                                :options="moderatorOptions"
+                                placeholder="–"
+                                option-label="username"
+                                option-value="id"
+                                :pt="moderatorDropdownPassThroughOptions"
+                                @before-show="loadModerators"
+                            >
+                                <template #value="{value, placeholder}: {value: bigint|undefined}">
+                                    <div v-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
+                                        <Avatar size="normal" :label="postVersion!.assigned_moderator.username![0]"
+                                                shape="circle"/>
+                                        <p class="hidden xs:block text-sm line-clamp-1">
+                                            {{ postVersion!.assigned_moderator.username }}</p>
+                                    </div>
+                                    <span v-else>
+                                    {{ placeholder }}
+                                </span>
+                                </template>
+                                <template #option="{option, index}: { option: User }">
+                                    <div class="flex gap-2 items-center py-2 px-3 w-full"
+                                         @click="assignModerator(option)">
+                                        <Avatar size="normal" :label="option.username![0]" shape="circle"/>
+                                        <p class="text-sm line-clamp-1">{{ option.username }}</p>
+                                    </div>
+                                </template>
+                            </Dropdown>
+                        </div>
+
+                        <div v-if="postVersion!.post" class="header-details-item">
+                            <p class="header-details-item-header">Материал</p>
+                            <RouterLink
+                                :to="{name: 'post', params: {slug: postVersion!.post.slug}}"
+                                class="text-[var(--primary-color)] hover:underline line-clamp-2 text-sm xs:text-base "
+                            >
+                                {{ postVersion!.post.version.title }}
+                            </RouterLink>
+                        </div>
+
+                        <div class="header-details-item">
+                            <p class="header-details-item-header">Статус</p>
+                            <Tag
+                                :value="postVersionStatusInfo.name"
+                                :severity="postVersionStatusInfo.severity"
+                            />
+                        </div>
+                    </div>
                 </div>
-                <hr class="mb-3"/>
+            </template>
+            <template v-slot:sidebar>
+                <div class="flex flex-col">
+                    <div
+                        v-if="authStore.isModerator && postVersion!.status === PostVersionStatus.PENDING"
+                        class="sidebar-item flex flex-col gap-2 items-start"
+                    >
+                        <p class="sidebar-item-header">Модератор</p>
+                        <Dropdown
+                            ref="moderatorDropdown"
+                            v-model="postVersion!.assigned_moderator_id"
+                            :options="moderatorOptions"
+                            placeholder="–"
+                            option-label="username"
+                            option-value="id"
+                            :pt="moderatorDropdownPassThroughOptions"
+                            class="w-full"
+                            @before-show="loadModerators"
+                        >
+                            <template #value="{value, placeholder}: {value: bigint|undefined}">
+                                <div v-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
+                                    <Avatar size="normal" :label="postVersion!.assigned_moderator.username![0]"
+                                            shape="circle"/>
+                                    <p class="text-sm line-clamp-1">{{ postVersion!.assigned_moderator.username }}</p>
+                                </div>
+                                <span v-else>
+                                    {{ placeholder }}
+                                </span>
+                            </template>
+                            <template #option="{option, index}: { option: User }">
+                                <div class="flex gap-2 items-center py-2 px-3 w-full" @click="assignModerator(option)">
+                                    <Avatar size="normal" :label="option.username![0]" shape="circle"/>
+                                    <p class="text-sm line-clamp-1">{{ option.username }}</p>
+                                </div>
+                            </template>
+                        </Dropdown>
+                        <!--                        <div v-if="postVersion!.assigned_moderator" class="flex gap-2 items-center w-full">-->
+                        <!--                            <Avatar size="normal" :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>-->
+                        <!--                            <p class="text-sm line-clamp-1">{{ postVersion!.assigned_moderator.username }}</p>-->
+                        <!--                            <span-->
+                        <!--                                title="Назначить модератора"-->
+                        <!--                                class="fa-solid fa-gear text-muted ml-auto cursor-pointer"-->
+                        <!--                            />-->
+                        <!--                        </div>-->
+                        <!--                        <p v-else>-->
+                        <!--                            –-->
+                        <!--                        </p>-->
+                    </div>
 
-                <p class="text-xs text-muted">Статус</p>
-                <Tag :value="postVersionStatusInfo.name" :severity="postVersionStatusInfo.severity"/>
+                    <div v-if="postVersion!.post" class="sidebar-item flex flex-col gap-2 items-start">
+                        <p class="sidebar-item-header">Материал</p>
+                        <RouterLink
+                            :to="{name: 'post', params: {slug: postVersion!.post.slug}}"
+                            class="text-[var(--primary-color)] hover:underline line-clamp-2"
+                        >
+                            {{ postVersion!.post.version.title }}
+                        </RouterLink>
+                    </div>
 
-                <div v-if="isOwnDraft || isReviewing" class="flex flex-col gap-2 mt-3">
-                    <hr class="mb-3"/>
+                    <div class="sidebar-item flex flex-col gap-2 items-start">
+                        <p class="sidebar-item-header">Статус</p>
+                        <Tag :value="postVersionStatusInfo.name" :severity="postVersionStatusInfo.severity"/>
+                    </div>
 
-                    <template v-if="isOwnDraft">
-                        <Button
-                            icon="fa-solid fa-check"
-                            label="Отправить на модерацию"
-                            outlined
-                            @click="submitOverlayPanel?.toggle"
-                        />
-                        <Button
-                            icon="fa-solid fa-floppy-disk"
-                            label="Сохранить изменения"
-                            severity="secondary"
-                            :loading="isUpdatingDraft"
-                            @click="updateDraft"
-                        />
-                    </template>
-                    <template v-else>
-                        <Button
-                            icon="fa-solid fa-check"
-                            label="Принять и опубликовать"
-                            outlined
-                            @click="acceptOverlayPanel?.toggle"
-                        />
-                        <Button
-                            icon="fa-solid fa-ban"
-                            label="Отклонить"
-                            severity="danger"
-                            outlined
-                            @click="rejectOverlayPanel?.toggle"
-                        />
-                        <Button
-                            icon="fa-solid fa-rotate-left"
-                            label="Вернуть на доработку"
-                            severity="secondary"
-                            @click="requestChangesOverlayPanel?.toggle"
-                        />
-                    </template>
+                    <div v-if="isOwnDraft || isReviewing" class="sidebar-item flex flex-col gap-2">
+                        <template v-if="isOwnDraft">
+                            <Button
+                                icon="fa-solid fa-check"
+                                label="Отправить на модерацию"
+                                outlined
+                                @click="submitOverlayPanel?.toggle"
+                            />
+                            <Button
+                                icon="fa-solid fa-floppy-disk"
+                                label="Сохранить изменения"
+                                severity="secondary"
+                                :loading="isUpdatingDraft"
+                                @click="updateDraft"
+                            />
+                        </template>
+                        <template v-else>
+                            <Button
+                                icon="fa-solid fa-check"
+                                label="Принять и опубликовать"
+                                outlined
+                                @click="acceptOverlayPanel?.toggle"
+                            />
+                            <Button
+                                icon="fa-solid fa-ban"
+                                label="Отклонить"
+                                severity="danger"
+                                outlined
+                                @click="rejectOverlayPanel?.toggle"
+                            />
+                            <Button
+                                icon="fa-solid fa-rotate-left"
+                                label="Вернуть на доработку"
+                                severity="secondary"
+                                @click="requestChangesOverlayPanel?.toggle"
+                            />
+                        </template>
+                    </div>
                 </div>
             </template>
         </PostEditor>
@@ -356,5 +595,21 @@ function requestChanges() {
 </template>
 
 <style scoped>
+.header-details-item {
+    @apply contents gap-4 items-start;
+}
 
+.header-details-item-header {
+    @apply text-xs;
+    color: var(--text-color-secondary);
+}
+
+.sidebar-item:not(:first-child) {
+    @apply mt-3 pt-3 border-t border-[var(--surface-border)]
+}
+
+.sidebar-item-header {
+    @apply text-xs;
+    color: var(--text-color-secondary);
+}
 </style>

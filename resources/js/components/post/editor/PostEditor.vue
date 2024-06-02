@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {ref} from 'vue'
-import type {PostVersion} from '@/types'
+import {type PropType, ref} from 'vue'
+import type {PostVersion, User} from '@/types'
 import Dropdown from 'primevue/dropdown'
 import {usePostCategoryStore} from '@/stores/postCategory'
 import {Document} from '@tiptap/extension-document'
@@ -16,16 +16,17 @@ import {Blockquote} from '@tiptap/extension-blockquote'
 import {Image} from '@tiptap/extension-image'
 import CoverUpload from '@/components/post/editor/CoverUpload.vue'
 import Editor from '@/components/editor/Editor.vue'
+import Avatar from 'primevue/avatar'
 
 defineProps({
-    editorTitle: {
-        type: String,
+    author: {
+        type: Object as PropType<User>,
         required: true,
     },
     editable: {
         type: Boolean,
-        default: true
-    }
+        default: true,
+    },
 })
 
 const postCategoryStore = usePostCategoryStore()
@@ -88,12 +89,20 @@ const contentEditorExtensions = [
     <div class="grid lg:grid-cols-[1fr,19rem] gap-4">
         <div class="min-w-0">
             <div class="surface-overlay rounded-xl p-4 border">
-                <p class="text-2xl font-semibold flex text-center">{{ editorTitle }}</p>
+                <slot name="header">
+                    <p class="text-2xl font-semibold">Редактор</p>
+                </slot>
             </div>
 
             <div class="surface-overlay rounded-xl border mt-4">
+                <div class="flex gap-2 items-center m-4 lg:mx-10">
+                    <Avatar :label="author.username![0]" shape="circle"/>
+                    <p class="text-sm">{{ author.username }}</p>
+                </div>
+
                 <Editor
                     v-model="postVersion.title"
+                    :editable="editable"
                     :extensions="titleEditorExtensions"
                     plain-text
                     without-menus
@@ -108,6 +117,7 @@ const contentEditorExtensions = [
 
                 <Editor
                     v-model="postVersion.content"
+                    :editable="editable"
                     :extensions="contentEditorExtensions"
                     editor-class="post-content min-h-[25rem]"
                 />
@@ -151,7 +161,7 @@ const contentEditorExtensions = [
             class="lg:sticky lg:right-0 lg:top-[--header-with-margin-height] lg:max-h-[calc(100vh-var(--header-with-margin-height))]"
         >
             <div class="surface-overlay rounded-xl border p-4">
-                <slot name="actions"/>
+                <slot name="sidebar"/>
             </div>
         </div>
     </div>

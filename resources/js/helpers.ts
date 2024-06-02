@@ -88,7 +88,7 @@ export function getPostVersionStatusInfo(status: PostVersionStatus) {
         case PostVersionStatus.PENDING:
             return {
                 name: 'На рассмотрении',
-                severity: 'info'
+                severity: 'warning'
             }
         case PostVersionStatus.ACCEPTED:
             return {

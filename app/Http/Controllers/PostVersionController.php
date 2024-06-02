@@ -11,6 +11,7 @@ use App\Services\Dto\NewPostVersionDto;
 use App\Services\Dto\PostVersionUpdateDto;
 use App\Services\PostVersionService;
 use Auth;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -58,29 +59,45 @@ class PostVersionController extends Controller
         }
         $sortDirection = $sortOrder === -1 ? 'desc' : 'asc';
 
-        $postVersions = PostVersion::whereStatus($status)->orderBy($sortField, $sortDirection)->with(['author', 'assignedModerator'])->paginate($perPage);
+        $postVersionsPaginator = PostVersion::whereStatus($status)
+            ->orderBy($sortField, $sortDirection)
+            ->with(['author', 'assignedModerator'])
+            ->paginate($perPage);
+
+        $postVersions = $postVersionsPaginator->getCollection()->each(
+            fn(PostVersion $item) => $item->makeVisible('assigned_moderator_id')
+        )->all();
 
         return $this->successJsonResponse([
-            'records' => $postVersions->items(),
+            'records' => $postVersions,
             'pagination' => [
-                'total_records' => $postVersions->total(),
-                'current_page' => $postVersions->currentPage(),
-                'total_pages' => $postVersions->lastPage(),
+                'total_records' => $postVersionsPaginator->total(),
+                'current_page' => $postVersionsPaginator->currentPage(),
+                'total_pages' => $postVersionsPaginator->lastPage(),
             ],
         ]);
     }
 
     public function getById(int $id): JsonResponse
     {
-        /** @var PostVersion $postVersion */
-        $postVersion = PostVersion::with(['author', 'post', 'category'])->find($id);
         $user = Auth::user();
 
-        return response()->json(
-            $user->is_moderator || $postVersion->author_id === $user->id
-                ? $postVersion
-                : null
-        );
+        $query = PostVersion::with(['author', 'post', 'category']);
+        if ($user->is_moderator) {
+            $query = $query->with('assignedModerator');
+        }
+
+        /** @var PostVersion|null $postVersion */
+        $postVersion = $query->find($id);
+        if ($postVersion === null || (!$user->is_moderator && $postVersion->author_id !== $user->id)) {
+            return response()->json(null);
+        }
+
+        if ($user->is_moderator) {
+            $postVersion->makeVisible('assigned_moderator_id');
+        }
+
+        return response()->json($postVersion);
     }
 
     public function getByUser(Request $request, int $userId): JsonResponse
@@ -124,21 +141,55 @@ class PostVersionController extends Controller
         }
         $sortDirection = $sortOrder === -1 ? 'desc' : 'asc';
 
-        $postVersions = PostVersion
+        $query = PostVersion
             ::whereAuthorId($userId)
             ->whereStatus($status)
             ->orderBy($sortField, $sortDirection)
-            ->with(['author', 'assignedModerator'])
-            ->paginate($perPage);
+            ->with(['author']);
+
+        if ($user->is_moderator) {
+            $query = $query->with('assignedModerator');
+        }
+
+        $postVersionsPaginator = $query->paginate($perPage);
+        $postVersions = $user->is_moderator
+            ? $postVersionsPaginator
+                ->getCollection()
+                ->each(fn(PostVersion $item) => $item->makeVisible('assigned_moderator_id'))
+                ->all()
+            : $postVersionsPaginator->items();
 
         return $this->successJsonResponse([
-            'records' => $postVersions->items(),
+            'records' => $postVersions,
             'pagination' => [
-                'total_records' => $postVersions->total(),
-                'current_page' => $postVersions->currentPage(),
-                'total_pages' => $postVersions->lastPage(),
+                'total_records' => $postVersionsPaginator->total(),
+                'current_page' => $postVersionsPaginator->currentPage(),
+                'total_pages' => $postVersionsPaginator->lastPage(),
             ],
         ]);
+    }
+
+    public function assignModerator(Request $request, int $versionId): JsonResponse
+    {
+        $postVersion = PostVersion::find($versionId);
+        if ($postVersion === null) {
+            return $this->errorJsonResponse("Не найдена версия материала с id $versionId.");
+        }
+
+        $validator = Validator::make($request->all(), [
+            'moderator_id' => ['required', 'integer'],
+        ]);
+        if ($validator->fails()) {
+            return $this->errorJsonResponse('', $validator->errors());
+        }
+
+        try {
+            $this->postVersionService->assignModerator($postVersion, $request->integer('moderator_id'));
+        } catch (Exception $e) {
+            return $this->errorJsonResponse($e->getMessage());
+        }
+
+        return $this->successJsonResponse();
     }
 
     public function createDraft(Request $request): JsonResponse

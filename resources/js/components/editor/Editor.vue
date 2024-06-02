@@ -378,9 +378,9 @@ function unsetLink() {
 <template>
     <div>
         <BubbleMenu
+            v-if="editor && editable && !withoutMenus && menuItems.length > 0"
             :editor="editor"
             :tippy-options="{zIndex: 100, maxWidth: 'none'}"
-            v-if="editor && editable && !withoutMenus && menuItems.length > 0"
             :update-delay="0"
             class="hidden lg:block"
         >
@@ -391,9 +391,9 @@ function unsetLink() {
         </BubbleMenu>
 
         <FloatingMenu
+            v-if="editor && editable && !withoutMenus"
             :editor="editor"
             :tippy-options="{ placement: 'left', offset: [0, 0], zIndex: 100 }"
-            v-if="editor && editable && !withoutMenus"
             :should-show="({state}) => isAtEmptyRootParagraph(state)"
             class="hidden lg:block"
         >
@@ -401,7 +401,7 @@ function unsetLink() {
             <EditorVerticalMenu ref="addNodeMenu" title="Добавить" :items="menuItems"/>
         </FloatingMenu>
 
-        <OverlayPanel v-if="!withoutMenus" ref="linkOverlayPanel" @show="onLinkOverlayPanelShow">
+        <OverlayPanel v-if="editable && !withoutMenus" ref="linkOverlayPanel" @show="onLinkOverlayPanelShow">
             <form class="space-y-2" @submit.prevent="setLink">
                 <InputGroup>
                     <InputText v-model="currentLink.href" placeholder="https://" class="w-full" autocomplete="off"/>
@@ -418,7 +418,7 @@ function unsetLink() {
         </div>
 
         <EditorHorizontalMenu
-            v-if="editor && !withoutMenus"
+            v-if="editor && editable && !withoutMenus"
             :items="menuItems"
             class="block lg:hidden sticky bottom-0 rounded-b-xl border-t overflow-x-auto whitespace-nowrap"
         />

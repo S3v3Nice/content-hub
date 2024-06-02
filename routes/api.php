@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users', [UserController::class, 'get']);
 
         Route::get('/post-versions', [PostVersionController::class, 'get']);
+        Route::put('/post-versions/{id}/assigned-moderator', [PostVersionController::class, 'assignModerator'])->where('id', '[0-9]+');
         Route::patch('/post-versions/{id}/request-changes', [PostVersionController::class, 'requestChanges'])->where('id', '[0-9]+');
         Route::patch('/post-versions/{id}/accept', [PostVersionController::class, 'accept'])->where('id', '[0-9]+');
         Route::patch('/post-versions/{id}/reject', [PostVersionController::class, 'reject'])->where('id', '[0-9]+');

@@ -18,6 +18,7 @@ class UserController extends Controller
     public function get(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
+            'roles.*' => ['integer'],
             'page' => ['integer'],
             'per_page' => ['integer'],
             'sort_field' => ['string', new ColumnExistsRule(User::getModel()->getTable())],
@@ -28,7 +29,6 @@ class UserController extends Controller
             return $this->errorJsonResponse('', $validator->errors());
         }
 
-        $perPage = $request->integer('per_page', 10);
         $sortOrder = $request->integer('sort_order', -1);
 
         if ($sortOrder === 0) {
@@ -39,15 +39,27 @@ class UserController extends Controller
             $sortDirection = $sortOrder === -1 ? 'desc' : 'asc';
         }
 
-        $users = User::orderBy($sortField, $sortDirection)->paginate($perPage);
+        $query = User::orderBy($sortField, $sortDirection);
+        if ($request->has('roles')) {
+            $query->whereIn('role', $request->input('roles'));
+        }
+
+        if ($request->has('per_page') || $request->has('page')) {
+            $perPage = $request->integer('per_page', 10);
+            $users = $query->paginate($perPage);
+
+            return $this->successJsonResponse([
+                'records' => $users->items(),
+                'pagination' => [
+                    'total_records' => $users->total(),
+                    'current_page' => $users->currentPage(),
+                    'total_pages' => $users->lastPage(),
+                ],
+            ]);
+        }
 
         return $this->successJsonResponse([
-            'records' => $users->items(),
-            'pagination' => [
-                'total_records' => $users->total(),
-                'current_page' => $users->currentPage(),
-                'total_pages' => $users->lastPage(),
-            ],
+            'records' => $query->get(),
         ]);
     }
 

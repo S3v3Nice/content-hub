@@ -6,10 +6,13 @@ use App\Models\PostCategory;
 use App\Models\PostVersion;
 use App\Models\PostVersionActionType;
 use App\Models\PostVersionStatus;
+use App\Models\User;
 use App\Services\Dto\NewPostVersionDto;
 use App\Services\Dto\PostVersionActionDto;
 use App\Services\Dto\PostVersionUpdateDto;
 use Carbon\Carbon;
+use Exception;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -21,6 +24,28 @@ class PostVersionService
         private readonly PostService              $postService
     )
     {
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function assignModerator(PostVersion $postVersion, int $moderatorId): void
+    {
+        $moderator = User::find($moderatorId);
+        if ($moderator === null || !$moderator->is_moderator) {
+            throw new Exception('Не существует модератора с заданным id.');
+        }
+
+        Model::withoutTimestamps(fn() => $postVersion->assignedModerator()->associate($moderator)->save());
+
+        $this->postVersionActionService->create(
+            new PostVersionActionDto(
+                $postVersion,
+                Auth::user(),
+                PostVersionActionType::AssignModerator,
+                ['moderator_id' => $moderatorId]
+            ),
+        );
     }
 
     public function createDraft(NewPostVersionDto $dto): PostVersion

@@ -12,6 +12,7 @@ import type {MenuItem} from 'primevue/menuitem'
 import TabMenu, {type TabMenuChangeEvent} from 'primevue/tabmenu'
 import ProgressSpinner from 'primevue/progressspinner'
 import Button from 'primevue/button'
+import PostVersionCard from '@/components/post/PostVersionCard.vue'
 
 interface PostVersionLoadResponseData {
     success: boolean
@@ -47,6 +48,8 @@ loadPostVersions()
 
 function loadPostVersions() {
     isLoading.value = true
+
+    postVersions.value = []
 
     axios.get(`/api/users/${authStore.id}/post-versions`, {params: loadRequestData}).then((response) => {
         const responseData: PostVersionLoadResponseData = response.data
@@ -91,23 +94,14 @@ function onTabChange(event: TabMenuChangeEvent) {
         <div v-if="postVersions.length === 0">
             <p class="text-muted">Заявки не найдены.</p>
         </div>
+
         <div v-else class="rounded-md border">
-            <div v-for="postVersion in postVersions"
-                 class="h-[7rem] grid grid-cols-[5rem,1fr] gap-2 [&:not(:first-child)]:border-t p-3">
-                <img :src="postVersion.cover_url" alt="" class="h-full object-cover object-center rounded-md">
-                <div class="flex flex-col flex-grow overflow-hidden h-full">
-                    <div class="text-muted text-xs lg:text-sm">
-                        {{ new Date(postVersion.updated_at!).toLocaleDateString() }}
-                    </div>
-                    <RouterLink
-                        :to="{ name: 'post-version', params: {id: postVersion.id} }"
-                        class="leading-5 lg:text-lg font-semibold hover:text-[var(--highlight-text-color)]
-                               transition-colors line-clamp-3 lg:line-clamp-2"
-                    >
-                        {{ postVersion.title }}
-                    </RouterLink>
-                </div>
-            </div>
+            <PostVersionCard
+                v-for="postVersion in postVersions"
+                :post-version="postVersion"
+                :show-author="false"
+                class="[&:not(:first-child)]:border-t"
+            />
         </div>
     </template>
     <Paginator

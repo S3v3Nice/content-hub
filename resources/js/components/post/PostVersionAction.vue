@@ -23,27 +23,34 @@ const props = defineProps({
 </script>
 
 <template>
-    <div v-if="minimized" class="inline-block">
-        <span v-if="action.type === PostVersionActionType.SUBMIT" class="minimized-action">Отправлена заявка.</span>
-        <span v-else-if="action.type === PostVersionActionType.ACCEPT" class="minimized-action">Принято.</span>
-        <span v-else-if="action.type === PostVersionActionType.REJECT" class="minimized-action">
-            <span>Отклонено: </span>
-            <span class="text-muted">
-                {{ (action.details as PostVersionActionReject).reason }}
-            </span>
+    <div v-if="minimized" class="inline-block minimized-action">
+        <span v-if="action.type === PostVersionActionType.SUBMIT">
+            <span class="fa-solid fa-paper-plane text-muted mr-1.5"/>
+            <span>Отправлена заявка.</span>
         </span>
-        <span v-else-if="action.type === PostVersionActionType.REQUEST_CHANGES" class="minimized-action">
-            <span>Возвращено на доработку: </span>
-            <span class="text-muted">
-                {{ (action.details as PostVersionActionRequestChanges).message }}
+        <span v-else>
+            <span v-if="action.type === PostVersionActionType.ACCEPT">
+                <span class="fa-solid fa-circle-check text-[var(--green-500)] mr-1.5"/>
+                <span>Принято.</span>
             </span>
-        </span>
-        <span v-else-if="action.type === PostVersionActionType.ASSIGN_MODERATOR" class="minimized-action">
-            Назначен модератор
-            <span class="text-[var(--primary-color)]">
-                {{ (action.details as PostVersionActionAssignModerator).moderator!.username }}
+            <span v-else-if="action.type === PostVersionActionType.REJECT">
+                <span class="fa-solid fa-circle-xmark p-error mr-1.5"/>
+                <span>Отклонено: </span>
+                <span class="text-muted">{{ (action.details as PostVersionActionReject).reason }}</span>
             </span>
-            <span>.</span>
+            <span v-else-if="action.type === PostVersionActionType.REQUEST_CHANGES">
+                <span class="fa-solid fa-rotate-left text-muted mr-1.5"/>
+                <span>Возвращено на доработку: </span>
+                <span class="text-muted">{{ (action.details as PostVersionActionRequestChanges).message }}</span>
+            </span>
+            <span v-else-if="action.type === PostVersionActionType.ASSIGN_MODERATOR">
+                <span class="fa-solid fa-hammer text-muted mr-1.5"/>
+                Назначен модератор
+                <span class="text-[var(--primary-color)]">
+                    {{ (action.details as PostVersionActionAssignModerator).moderator!.username }}
+                </span>
+                <span>.</span>
+            </span>
         </span>
     </div>
     <div v-else class="flex flex-col xs:flex-row gap-1 xs:gap-2">

@@ -392,7 +392,7 @@ function requestChanges() {
                                lg:hidden border-t pt-3"
                     >
                         <div
-                            v-if="authStore.isModerator && postVersion!.status === PostVersionStatus.PENDING"
+                            v-if="authStore.isModerator && postVersion!.status !== PostVersionStatus.DRAFT"
                             class="header-details-item"
                         >
                             <p class="header-details-item-header">Модератор</p>

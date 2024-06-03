@@ -64,7 +64,7 @@ class PostVersionController extends Controller
 
         $postVersionsPaginator = PostVersion::whereStatus($status)
             ->orderBy($sortField, $sortDirection)
-            ->with(['author', 'assignedModerator'])
+            ->with(['author', 'assignedModerator', 'actions.user'])
             ->paginate($perPage);
 
         $postVersions = $postVersionsPaginator->getCollection()->each(
@@ -169,19 +169,35 @@ class PostVersionController extends Controller
             ::whereAuthorId($userId)
             ->whereStatus($status)
             ->orderBy($sortField, $sortDirection)
-            ->with(['author']);
+            ->with(['author', 'actions.user'])->with([
+                    'actions' => function (HasMany $query) use ($user) {
+                        if (!$user->is_moderator) {
+                            $query->whereNot('type', PostVersionActionType::AssignModerator);
+                        }
+                    }
+                ]
+            );
 
         if ($user->is_moderator) {
             $query = $query->with('assignedModerator');
         }
 
         $postVersionsPaginator = $query->paginate($perPage);
-        $postVersions = $user->is_moderator
-            ? $postVersionsPaginator
-                ->getCollection()
-                ->each(fn(PostVersion $item) => $item->makeVisible('assigned_moderator_id'))
-                ->all()
-            : $postVersionsPaginator->items();
+        $postVersions = $postVersionsPaginator
+            ->getCollection()
+            ->each(function (PostVersion $postVersion) use ($user) {
+                if ($user->is_moderator) {
+                    $postVersion->makeVisible('assigned_moderator_id');
+                } else {
+                    $postVersion->actions->each(function (PostVersionAction $action) {
+                        if ($action->type !== PostVersionActionType::Submit) {
+                            $action->makeHidden('user_id');
+                            $action->makeHidden('user');
+                        }
+                    });
+                }
+            })
+            ->all();
 
         return $this->successJsonResponse([
             'records' => $postVersions,

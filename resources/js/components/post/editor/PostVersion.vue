@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import PostEditor from '@/components/post/editor/PostEditor.vue'
+import PostVersionActionComponent from '@/components/post/PostVersionAction.vue'
 import Button from 'primevue/button'
 import OverlayPanel from 'primevue/overlaypanel'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
+import Dialog from 'primevue/dialog'
 import {computed, onUnmounted, reactive, ref} from 'vue'
 import axios, {type AxiosError} from 'axios'
 import {
@@ -19,6 +21,7 @@ import {
     type PostVersion,
     type PostVersionActionReject,
     type PostVersionActionRequestChanges,
+    PostVersionActionType,
     PostVersionStatus,
     type User,
     UserRole
@@ -44,7 +47,6 @@ const authStore = useAuthStore()
 const toastHelper = new ToastHelper(useToast())
 const postVersion = ref<PostVersion>()
 const moderators = ref<User[]>()
-const isLoadingModerators = ref(false)
 
 const isLoading = ref(false)
 const isSubmitting = ref(false)
@@ -52,6 +54,7 @@ const isUpdatingDraft = ref(false)
 const isAccepting = ref(false)
 const isRejecting = ref(false)
 const isRequestingChanges = ref(false)
+const isHistoryDialog = ref(false)
 
 const moderatorDropdown = ref<Dropdown>()
 const submitOverlayPanel = ref<OverlayPanel>()
@@ -106,6 +109,7 @@ const slug = computed({
 const postUrl = computed(() =>
     new URL(router.resolve({name: 'post', params: {slug: slug.value}}).fullPath, getAppUrl()).href
 )
+const lastAction = computed(() => postVersion.value!.actions!.at(postVersion.value!.actions!.length - 1))
 
 const moderatorDropdownPassThroughOptions: DropdownPassThroughOptions = {
     root: {
@@ -164,14 +168,10 @@ function loadModerators() {
         return
     }
 
-    isLoadingModerators.value = true
-
     axios.get(`/api/users`, {params: {roles: [UserRole.MODERATOR, UserRole.ADMIN]}}).then((response) => {
         moderators.value = response.data.records
     }).catch((error: AxiosError) => {
         toastHelper.error(getErrorMessageByCode(error.response!.status))
-    }).finally(() => {
-        isLoadingModerators.value = false
     })
 }
 
@@ -342,6 +342,19 @@ function requestChanges() {
         <ProgressSpinner/>
     </div>
     <template v-else>
+        <Dialog
+            v-if="postVersion"
+            header="История действий"
+            v-model:visible="isHistoryDialog"
+            :modal="true"
+            :draggable="false"
+            :dismissable-mask="true"
+            style="width: 50rem; height: 50rem;"
+        >
+            <div class="flex flex-col gap-5">
+                <PostVersionActionComponent v-for="action in postVersion.actions" :action="action"/>
+            </div>
+        </Dialog>
         <PostEditor
             v-if="postVersion"
             v-model="postVersion"
@@ -364,19 +377,19 @@ function requestChanges() {
                                 :title="`${wasUpdated ? 'Обновлено' : 'Создано'} ${getFullDate(postVersion!.updated_at)}`"
                                 class="text-muted text-xs lg:text-sm flex items-center gap-1.5"
                             >
-                            <span
-                                class="text-[var(--gray-400)]"
-                                :class="{'fa-regular fa-calendar': !wasUpdated,
-                                         'fa-solid fa-clock-rotate-left': wasUpdated}"
-                            />
+                                <span
+                                    class="text-[var(--gray-400)]"
+                                    :class="{'fa-regular fa-calendar': !wasUpdated,
+                                             'fa-solid fa-clock-rotate-left': wasUpdated}"
+                                />
                                 <p>{{ getRelativeDate(postVersion!.updated_at) }}</p>
                             </div>
                         </div>
                     </div>
 
                     <div
-                        class="grid grid-cols-[max-content,auto] justify-items-start items-center gap-y-2 gap-x-4 lg:hidden
-                               border-t pt-3"
+                        class="grid grid-cols-[max-content,auto] justify-items-start items-center gap-y-2 gap-x-4
+                               lg:hidden border-t pt-3"
                     >
                         <div
                             v-if="authStore.isModerator && postVersion!.status === PostVersionStatus.PENDING"
@@ -394,19 +407,18 @@ function requestChanges() {
                             >
                                 <template #value="{value, placeholder}: {value: bigint|undefined}">
                                     <div v-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
-                                        <Avatar size="normal" :label="postVersion!.assigned_moderator.username![0]"
-                                                shape="circle"/>
+                                        <Avatar :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>
                                         <p class="hidden xs:block text-sm line-clamp-1">
                                             {{ postVersion!.assigned_moderator.username }}</p>
                                     </div>
                                     <span v-else>
-                                    {{ placeholder }}
-                                </span>
+                                        {{ placeholder }}
+                                    </span>
                                 </template>
                                 <template #option="{option, index}: { option: User }">
                                     <div class="flex gap-2 items-center py-2 px-3 w-full"
                                          @click="assignModerator(option)">
-                                        <Avatar size="normal" :label="option.username![0]" shape="circle"/>
+                                        <Avatar :label="option.username![0]" shape="circle"/>
                                         <p class="text-sm line-clamp-1">{{ option.username }}</p>
                                     </div>
                                 </template>
@@ -417,7 +429,7 @@ function requestChanges() {
                             <p class="header-details-item-header">Материал</p>
                             <RouterLink
                                 :to="{name: 'post', params: {slug: postVersion!.post.slug}}"
-                                class="text-[var(--primary-color)] hover:underline line-clamp-2 text-sm xs:text-base "
+                                class="text-[var(--primary-color)] hover:underline line-clamp-2 text-sm xs:text-base"
                             >
                                 {{ postVersion!.post.version.title }}
                             </RouterLink>
@@ -430,6 +442,20 @@ function requestChanges() {
                                 :severity="postVersionStatusInfo.severity"
                             />
                         </div>
+                    </div>
+
+                    <div v-if="postVersion.actions!.length !== 0" class="flex flex-col gap-2 lg:hidden">
+                        <PostVersionActionComponent
+                            v-if="[PostVersionActionType.REJECT, PostVersionActionType.REQUEST_CHANGES].includes(lastAction?.type)"
+                            :action="lastAction"
+                            :minimized="true"
+                        />
+                        <Button
+                            icon="fa-solid fa-clock-rotate-left"
+                            label="История действий"
+                            severity="secondary xs:self-start"
+                            @click="isHistoryDialog = true"
+                        />
                     </div>
                 </div>
             </template>
@@ -453,8 +479,7 @@ function requestChanges() {
                         >
                             <template #value="{value, placeholder}: {value: bigint|undefined}">
                                 <div v-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
-                                    <Avatar size="normal" :label="postVersion!.assigned_moderator.username![0]"
-                                            shape="circle"/>
+                                    <Avatar :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>
                                     <p class="text-sm line-clamp-1">{{ postVersion!.assigned_moderator.username }}</p>
                                 </div>
                                 <span v-else>
@@ -463,22 +488,11 @@ function requestChanges() {
                             </template>
                             <template #option="{option, index}: { option: User }">
                                 <div class="flex gap-2 items-center py-2 px-3 w-full" @click="assignModerator(option)">
-                                    <Avatar size="normal" :label="option.username![0]" shape="circle"/>
+                                    <Avatar :label="option.username![0]" shape="circle"/>
                                     <p class="text-sm line-clamp-1">{{ option.username }}</p>
                                 </div>
                             </template>
                         </Dropdown>
-                        <!--                        <div v-if="postVersion!.assigned_moderator" class="flex gap-2 items-center w-full">-->
-                        <!--                            <Avatar size="normal" :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>-->
-                        <!--                            <p class="text-sm line-clamp-1">{{ postVersion!.assigned_moderator.username }}</p>-->
-                        <!--                            <span-->
-                        <!--                                title="Назначить модератора"-->
-                        <!--                                class="fa-solid fa-gear text-muted ml-auto cursor-pointer"-->
-                        <!--                            />-->
-                        <!--                        </div>-->
-                        <!--                        <p v-else>-->
-                        <!--                            –-->
-                        <!--                        </p>-->
                     </div>
 
                     <div v-if="postVersion!.post" class="sidebar-item flex flex-col gap-2 items-start">
@@ -496,6 +510,20 @@ function requestChanges() {
                         <Tag :value="postVersionStatusInfo.name" :severity="postVersionStatusInfo.severity"/>
                     </div>
 
+                    <div v-if="postVersion.actions!.length !== 0" class="sidebar-item flex flex-col gap-2">
+                        <PostVersionActionComponent
+                            v-if="[PostVersionActionType.REJECT, PostVersionActionType.REQUEST_CHANGES].includes(lastAction?.type)"
+                            :action="lastAction"
+                            :minimized="true"
+                        />
+                        <Button
+                            icon="fa-solid fa-clock-rotate-left"
+                            label="История действий"
+                            severity="secondary w-full"
+                            @click="isHistoryDialog = true"
+                        />
+                    </div>
+
                     <div v-if="isOwnDraft || isReviewing" class="sidebar-item flex flex-col gap-2">
                         <template v-if="isOwnDraft">
                             <Button
@@ -508,6 +536,7 @@ function requestChanges() {
                                 icon="fa-solid fa-floppy-disk"
                                 label="Сохранить изменения"
                                 severity="secondary"
+                                outlined
                                 :loading="isUpdatingDraft"
                                 @click="updateDraft"
                             />
@@ -530,6 +559,7 @@ function requestChanges() {
                                 icon="fa-solid fa-rotate-left"
                                 label="Вернуть на доработку"
                                 severity="secondary"
+                                outlined
                                 @click="requestChangesOverlayPanel?.toggle"
                             />
                         </template>

@@ -14,7 +14,7 @@ class PostVersionActionService
         $action->version()->associate($dto->version);
         $action->user()->associate($dto->user);
         $action->type = $dto->type;
-        $action->details = $dto->details ? json_encode($dto->details) : '{}';
+        $action->details = $dto->details;
         if ($dateTime !== null) {
             $action->created_at = $dateTime;
             $action->updated_at = $dateTime;

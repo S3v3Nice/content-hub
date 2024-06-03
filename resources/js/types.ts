@@ -73,6 +73,7 @@ export interface PostVersion {
     description?: string
     content?: string
     status?: PostVersionStatus
+    actions?: PostVersionAction[]
     created_at?: string
     updated_at?: string
 }

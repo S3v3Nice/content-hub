@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $version_id
  * @property int|null $user_id
  * @property \App\Models\PostVersionActionType $type
- * @property mixed $details
+ * @property array $details
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\User|null $user
@@ -21,10 +21,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction query()
- * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction whereDetails($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PostVersionAction whereVersionId($value)
@@ -41,6 +41,7 @@ class PostVersionAction extends Model
 
     protected $casts = [
         'type' => PostVersionActionType::class,
+        'details' => 'array',
     ];
 
     protected $attributes = [

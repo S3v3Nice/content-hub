@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PostCategory;
 use App\Models\PostVersion;
+use App\Models\PostVersionAction;
+use App\Models\PostVersionActionType;
 use App\Models\PostVersionStatus;
 use App\Models\User;
 use App\Rules\ColumnExistsRule;
@@ -12,6 +14,7 @@ use App\Services\Dto\PostVersionUpdateDto;
 use App\Services\PostVersionService;
 use Auth;
 use Exception;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -82,7 +85,14 @@ class PostVersionController extends Controller
     {
         $user = Auth::user();
 
-        $query = PostVersion::with(['author', 'post', 'category']);
+        $query = PostVersion::with(['author', 'post', 'category', 'actions.user'])->with([
+                'actions' => function (HasMany $query) use ($user) {
+                    if (!$user->is_moderator) {
+                        $query->whereNot('type', PostVersionActionType::AssignModerator);
+                    }
+                }
+            ]
+        );
         if ($user->is_moderator) {
             $query = $query->with('assignedModerator');
         }
@@ -95,6 +105,20 @@ class PostVersionController extends Controller
 
         if ($user->is_moderator) {
             $postVersion->makeVisible('assigned_moderator_id');
+            $postVersion->actions->each(function (PostVersionAction $action) {
+                if ($action->type === PostVersionActionType::AssignModerator) {
+                    $details = $action->details;
+                    $details['moderator'] = User::find($details['moderator_id']);
+                    $action->details = $details;
+                }
+            });
+        } else {
+            $postVersion->actions->each(function (PostVersionAction $action) {
+                if ($action->type !== PostVersionActionType::Submit) {
+                    $action->makeHidden('user_id');
+                    $action->makeHidden('user');
+                }
+            });
         }
 
         return response()->json($postVersion);

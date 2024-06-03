@@ -12,7 +12,7 @@ class PostVersionActionDto
         public readonly PostVersion           $version,
         public readonly User                  $user,
         public readonly PostVersionActionType $type,
-        public readonly ?array                $details = null,
+        public readonly array                 $details = [],
     )
     {
     }

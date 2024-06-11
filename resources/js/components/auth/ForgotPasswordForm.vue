@@ -17,7 +17,7 @@ function submitForgotPassword() {
     isProcessing.value = true
     errors.value = []
 
-    axios.post('/forgot-password', forgotPasswordData.value).then((response) => {
+    axios.post('/api/auth/forgot-password', forgotPasswordData.value).then((response) => {
         if (response.data.success) {
             toastHelper.success(`Ссылка для сброса пароля отправлена на ${forgotPasswordData.value.email}.`)
         } else {

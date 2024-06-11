@@ -24,7 +24,7 @@ function submitLogin() {
     isProcessing.value = true
     errors.value = []
 
-    axios.post('/login', loginData.value).then((response) => {
+    axios.post('/api/auth/login', loginData.value).then((response) => {
         if (response.data.success) {
             router.go(0)
         } else {

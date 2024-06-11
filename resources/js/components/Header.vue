@@ -112,7 +112,7 @@ function invokeUserMenuCommand(item: MenuItem) {
 }
 
 function logout() {
-    axios.post('/logout').then(() => {
+    axios.post('/api/auth/logout').then(() => {
         router.go(0)
     })
 }

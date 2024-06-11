@@ -24,7 +24,7 @@ function submitRegister() {
     isProcessing.value = true
     errors.value = []
 
-    axios.post('/register', registerData.value).then((response) => {
+    axios.post('/api/auth/register', registerData.value).then((response) => {
         if (response.data.success) {
             router.go(0)
         } else {

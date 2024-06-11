@@ -27,33 +27,33 @@ export const useAuthStore = defineStore('auth', {
         isModerator: (state) => state.user?.role === UserRole.MODERATOR || state.user?.role === UserRole.ADMIN,
     },
     actions: {
-        async fetchUser() {
-            await axios.get('/api/auth/user').then(({data}) => {
-                if (Object.keys(data).length === 0) {
-                    this.reset()
-                    return
-                }
-
-                this.isAuthenticated = true
-                this.user = {
-                    id: data.id,
-                    username: data.username,
-                    email: data.email,
-                    email_verified_at: data.email_verified_at,
-                    first_name: data.first_name,
-                    last_name: data.last_name,
-                    role: data.role,
-                    created_at: data.created_at,
-                    updated_at: data.updated_at
-                }
-            }).catch(() => {
-                this.reset()
-            })
-        },
-
-        reset() {
-            this.isAuthenticated = false
-            this.user = null
+async fetchUser() {
+    await axios.get('/api/auth/user').then(({data}) => {
+        if (Object.keys(data).length === 0) {
+            this.reset()
+            return
         }
+
+        this.isAuthenticated = true
+        this.user = {
+            id: data.id,
+            username: data.username,
+            email: data.email,
+            email_verified_at: data.email_verified_at,
+            first_name: data.first_name,
+            last_name: data.last_name,
+            role: data.role,
+            created_at: data.created_at,
+            updated_at: data.updated_at
+        }
+    }).catch(() => {
+        this.reset()
+    })
+},
+
+reset() {
+    this.isAuthenticated = false
+    this.user = null
+}
     }
 })

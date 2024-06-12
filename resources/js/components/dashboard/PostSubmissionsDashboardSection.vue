@@ -7,6 +7,8 @@ import Paginator, {type PageState} from 'primevue/paginator'
 import {reactive, ref} from 'vue'
 import axios, {type AxiosError} from 'axios'
 import PostVersionCard from '@/components/post/PostVersionCard.vue'
+import type {MenuItem} from 'primevue/menuitem'
+import TabMenu, {type TabMenuChangeEvent} from 'primevue/tabmenu'
 
 interface PostVersionLoadResponseData {
     success: boolean
@@ -29,6 +31,12 @@ const loadRequestData = reactive({
     page: 1,
     per_page: 10,
 })
+
+const tabs = ref<MenuItem[]>([
+    {label: 'На проверку', icon: 'fa-solid fa-hourglass-half', status: PostVersionStatus.PENDING},
+    {label: 'Принятые', icon: 'fa-solid fa-check-circle', status: PostVersionStatus.ACCEPTED},
+    {label: 'Отклонённые', icon: 'fa-solid fa-times-circle', status: PostVersionStatus.REJECTED},
+])
 
 loadPostVersions()
 
@@ -57,12 +65,19 @@ function onPageChange(event: PageState) {
         loadPostVersions()
     }
 }
+
+function onTabChange(event: TabMenuChangeEvent) {
+    loadRequestData.status = tabs.value[event.index].status
+    loadPostVersions()
+}
 </script>
 
 <template>
+    <TabMenu class="mb-4" :model="tabs" @tab-change="onTabChange"/>
+
     <template v-if="!isLoading">
         <div v-if="postVersions.length === 0">
-            <p class="text-muted">Материалы не найдены.</p>
+            <p class="text-muted">Заявки не найдены.</p>
         </div>
         <div v-else class="rounded-md border">
             <PostVersionCard

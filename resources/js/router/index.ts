@@ -6,15 +6,15 @@ import {changeTitle} from '@/helpers'
 import AuthRequired from '@/components/auth/AuthRequired.vue'
 import NoPermission from '@/components/NoPermission.vue'
 
-let hashObserver: ResizeObserver | null = null
-let hashObserverDisconnectTimeout: NodeJS.Timeout | null = null
+let hashObserver: ResizeObserver | undefined = undefined
+let hashObserverDisconnectTimeout: NodeJS.Timeout | undefined = undefined
 
 function disconnectHashObserver() {
     if (hashObserver) {
         hashObserver.disconnect()
         clearTimeout(hashObserverDisconnectTimeout)
-        hashObserver = null
-        hashObserverDisconnectTimeout = null
+        hashObserver = undefined
+        hashObserverDisconnectTimeout = undefined
     }
 }
 

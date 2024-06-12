@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PostEditor from '@/components/post/editor/PostEditor.vue'
 import Button from 'primevue/button'
-import {ref} from 'vue'
+import {onUnmounted, ref} from 'vue'
 import axios, {type AxiosError} from 'axios'
 import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
@@ -17,6 +17,18 @@ const isSubmitting = ref(false)
 const isCreatingDraft = ref(false)
 const submitOverlayPanel = ref<OverlayPanel>()
 const postVersion = ref<PostVersion>({})
+
+document.addEventListener('scroll', onScroll)
+
+onUnmounted(() => {
+    document.removeEventListener('scroll', onScroll)
+})
+
+function onScroll() {
+    if (submitOverlayPanel.value?.['visible']) {
+        submitOverlayPanel.value?.alignOverlay()
+    }
+}
 
 function submit() {
     isSubmitting.value = true

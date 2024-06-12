@@ -14,9 +14,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/{any}', function () {
-    return view('app');
-})->where('any', '.*');
-
+Route::view('/{any}', 'app')->where('any', '.*');
 Route::post('/password/reset', [AuthController::class, 'resetPassword'])->name('password.reset');
 Route::post('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');

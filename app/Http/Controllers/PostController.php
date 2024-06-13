@@ -22,7 +22,7 @@ class PostController extends Controller
     public function get(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'category_id' => ['integer', Rule::exists(PostCategory::class, 'id')],
+            'category_slug' => ['string', Rule::exists(PostCategory::class, 'slug')],
             'term' => ['string', 'nullable'],
             'page' => ['integer'],
             'per_page' => ['integer'],
@@ -57,19 +57,21 @@ class PostController extends Controller
             $postsQuery->where('updated_at', '>=', $startDate);
         }
 
-        $categoryId = $request->integer('category_id', -1);
+        $categorySlug = $request->string('category_slug');
         $searchTerm = $request->string('term');
 
-        if ($searchTerm->isNotEmpty() || $categoryId !== -1) {
-            $postsQuery->whereHas('versions', function (Builder $query) use ($searchTerm, $categoryId) {
+        if ($searchTerm->isNotEmpty() || $categorySlug->isNotEmpty()) {
+            $postsQuery->whereHas('versions', function (Builder $query) use ($searchTerm, $categorySlug) {
                 $query->whereIn('id', function (QueryBuilder $subQuery) {
                     $subQuery->selectRaw('MAX(id)')
                         ->from('post_versions')
                         ->where('status', PostVersionStatus::Accepted)
                         ->groupBy('post_id');
                 });
-                if ($categoryId !== -1) {
-                    $query->where('category_id', '=', $categoryId);
+                if ($categorySlug->isNotEmpty()) {
+                    $query->whereHas('category', function (Builder $categoryQuery) use ($categorySlug) {
+                        $categoryQuery->where('slug', '=', $categorySlug);
+                    });
                 }
                 if ($searchTerm->isNotEmpty()) {
                     $query->where(function ($query) use ($searchTerm) {

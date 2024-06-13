@@ -17,7 +17,7 @@ const route = useRoute()
 
 const postCategory = computed(() => postCategoryStore.getBySlug(props.slug))
 const categoryName = computed(() => postCategory.value?.name ?? `Категория ${props.slug}`)
-const loadData = computed(() => ({category_id: postCategory.value?.id ?? -1}))
+const loadData = computed(() => ({category_slug: props.slug}))
 
 watch(route, () => {
     updateTitle()

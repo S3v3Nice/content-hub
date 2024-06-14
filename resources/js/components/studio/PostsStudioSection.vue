@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import {type Post} from '@/types'
-import {getErrorMessageByCode, ToastHelper} from '@/helpers'
+import {getErrorMessageByCode, getFullDate, getRelativeDate, ToastHelper} from '@/helpers'
 import {useToast} from 'primevue/usetoast'
 import Paginator, {type PageState} from 'primevue/paginator'
 import {reactive, ref} from 'vue'
@@ -10,6 +10,7 @@ import {RouterLink} from 'vue-router'
 import {useAuthStore} from '@/stores/auth'
 import Button from 'primevue/button'
 import ProgressSpinner from 'primevue/progressspinner'
+import PostSingleActionsBar from '@/components/post/PostSingleActionsBar.vue'
 
 interface PostLoadResponseData {
     success: boolean
@@ -74,20 +75,35 @@ function onPageChange(event: PageState) {
             <p class="text-muted">Материалы не найдены.</p>
         </div>
         <div v-else class="rounded-md border">
-            <div v-for="post in posts"
-                 class="h-[7rem] grid grid-cols-[5rem,1fr] gap-2 [&:not(:first-child)]:border-t p-3">
-                <img :src="post.version!.cover_url" alt="" class="h-full object-cover object-center rounded-md">
-                <div class="flex flex-col flex-grow overflow-hidden h-full">
-                    <div class="text-muted text-xs lg:text-sm">
-                        {{ new Date(post.updated_at).toLocaleDateString() }}
-                    </div>
-                    <RouterLink
-                        :to="{ name: 'post', params: {slug: post.slug} }"
-                        class="leading-5 lg:text-lg font-semibold hover:text-[var(--highlight-text-color)]
-                               transition-colors line-clamp-3 lg:line-clamp-2"
-                    >
-                        {{ post.version!.title }}
+            <div v-for="post in posts" class="flex flex-col gap-2 p-3 [&:not(:first-child)]:border-t">
+                <div class="flex xs:grid grid-cols-[6rem,1fr] gap-2">
+                    <RouterLink :to="{ name: 'post', params: {slug: post.slug} }" class="hidden xs:block">
+                        <img
+                            :src="post.version!.cover_url"
+                            alt=""
+                            class="h-[4.5rem] object-cover object-center rounded-md"
+                        >
                     </RouterLink>
+                    <div class="flex flex-col gap-1.5 w-full">
+                        <div class="inline-block text-muted text-xs lg:text-sm">
+                            <span
+                                :title="`${post.version!.updated_at !== post.version!.created_at ? 'Обновлено' : 'Создано'} ${getFullDate(post.version!.updated_at!)}`"
+                            >
+                                <span>{{ getRelativeDate(post.version!.updated_at!) }}</span>
+                            </span>
+                        </div>
+                        <div class="flex gap-4 items-center mb-2">
+                            <RouterLink
+                                :to="{ name: 'post', params: {slug: post.slug} }"
+                                class="leading-5 lg:text-lg font-semibold hover:text-[var(--highlight-text-color)]
+                               transition-colors line-clamp-2"
+                            >
+                                {{ post.version!.title }}
+                            </RouterLink>
+                        </div>
+
+                        <PostSingleActionsBar :post="post"/>
+                    </div>
                 </div>
             </div>
         </div>

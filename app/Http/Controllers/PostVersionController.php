@@ -48,10 +48,11 @@ class PostVersionController extends Controller
             return $this->errorJsonResponse('', $validator->errors());
         }
 
-        $defaultSortOrder = 1;
+        $status = PostVersionStatus::from($request->integer('status', PostVersionStatus::Pending->value));
+
+        $defaultSortOrder = $status == PostVersionStatus::Pending ? 1 : -1;
         $defaultSortField = 'updated_at';
 
-        $status = PostVersionStatus::from($request->integer('status', PostVersionStatus::Pending->value));
         $perPage = $request->integer('per_page', 10);
         $sortOrder = $request->integer('sort_order', $defaultSortOrder);
         if ($sortOrder === 0) {

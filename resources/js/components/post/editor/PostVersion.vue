@@ -391,12 +391,10 @@ function requestChanges() {
                         class="grid grid-cols-[max-content,auto] justify-items-start items-center gap-y-2 gap-x-4
                                lg:hidden border-t pt-3"
                     >
-                        <div
-                            v-if="authStore.isModerator && postVersion!.status !== PostVersionStatus.DRAFT"
-                            class="header-details-item"
-                        >
+                        <div v-if="authStore.isModerator" class="header-details-item">
                             <p class="header-details-item-header">Модератор</p>
                             <Dropdown
+                                v-if="postVersion!.status === PostVersionStatus.PENDING"
                                 v-model="postVersion!.assigned_moderator_id"
                                 :options="moderatorOptions"
                                 placeholder="–"
@@ -409,7 +407,8 @@ function requestChanges() {
                                     <div v-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
                                         <Avatar :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>
                                         <p class="hidden xs:block text-sm line-clamp-1">
-                                            {{ postVersion!.assigned_moderator.username }}</p>
+                                            {{ postVersion!.assigned_moderator.username }}
+                                        </p>
                                     </div>
                                     <span v-else>
                                         {{ placeholder }}
@@ -423,6 +422,11 @@ function requestChanges() {
                                     </div>
                                 </template>
                             </Dropdown>
+                            <div v-else-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
+                                <Avatar :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>
+                                <p class="text-sm line-clamp-1">{{ postVersion!.assigned_moderator.username }}</p>
+                            </div>
+                            <p v-else class="text-sm">–</p>
                         </div>
 
                         <div v-if="postVersion!.post" class="header-details-item">
@@ -461,12 +465,10 @@ function requestChanges() {
             </template>
             <template v-slot:sidebar>
                 <div class="flex flex-col">
-                    <div
-                        v-if="authStore.isModerator && postVersion!.status === PostVersionStatus.PENDING"
-                        class="sidebar-item flex flex-col gap-2 items-start"
-                    >
+                    <div v-if="authStore.isModerator" class="sidebar-item flex flex-col gap-2 items-start">
                         <p class="sidebar-item-header">Модератор</p>
                         <Dropdown
+                            v-if="postVersion!.status === PostVersionStatus.PENDING"
                             ref="moderatorDropdown"
                             v-model="postVersion!.assigned_moderator_id"
                             :options="moderatorOptions"
@@ -493,6 +495,11 @@ function requestChanges() {
                                 </div>
                             </template>
                         </Dropdown>
+                        <div v-else-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
+                            <Avatar :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>
+                            <p class="text-sm line-clamp-1">{{ postVersion!.assigned_moderator.username }}</p>
+                        </div>
+                        <p v-else class="text-sm">–</p>
                     </div>
 
                     <div v-if="postVersion!.post" class="sidebar-item flex flex-col gap-2 items-start">

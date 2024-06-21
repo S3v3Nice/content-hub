@@ -93,6 +93,9 @@ class PostVersionService
     public function requestChanges(PostVersion $postVersion, PostVersionUpdateDto $dto): void
     {
         $now = Carbon::now();
+
+        $postVersion->assignedModerator()->associate(Auth::user());
+
         $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Draft, $now);
 
         $this->postVersionActionService->create(
@@ -116,6 +119,8 @@ class PostVersionService
             $postVersion->post()->associate($post);
         }
 
+        $postVersion->assignedModerator()->associate(Auth::user());
+
         $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Accepted, $now);
         if (!$isNewPost) {
             $postVersion->post->update(['updated_at' => $now]);
@@ -135,6 +140,8 @@ class PostVersionService
     {
         $now = Carbon::now();
         $this->updatePostVersion($postVersion, $dto, PostVersionStatus::Rejected, $now);
+
+        $postVersion->assignedModerator()->associate(Auth::user());
 
         $this->postVersionActionService->create(
             new PostVersionActionDto(

@@ -4,13 +4,15 @@ import {type User, UserRole} from '@/types'
 
 interface AuthUser {
     isAuthenticated: boolean
+    isFetched: boolean
     user: User | null
 }
 
 export const useAuthStore = defineStore('auth', {
     state: (): AuthUser => ({
         isAuthenticated: false,
-        user: null
+        isFetched: false,
+        user: null,
     }),
     getters: {
         id: (state) => state.user?.id,
@@ -35,6 +37,7 @@ export const useAuthStore = defineStore('auth', {
                 }
 
                 this.isAuthenticated = true
+                this.isFetched = true
                 this.user = data
             }).catch(() => {
                 this.reset()

@@ -77,11 +77,7 @@ router.beforeEach((to, _from, next) => {
         next()
     }
 
-    if (!to.matched[0].meta.defaultComponent) {
-        to.matched[0].meta.defaultComponent = to.matched[0].components!.default
-    }
-
-    authStore.fetchUser().then(() => {
+    function processRouteNavigation() {
         if (
             to.matched.some(record => record.meta.requiresAuth) &&
             !authStore.isAuthenticated
@@ -107,7 +103,17 @@ router.beforeEach((to, _from, next) => {
         }
 
         displayComponent()
-    })
+    }
+
+    if (!to.matched[0].meta.defaultComponent) {
+        to.matched[0].meta.defaultComponent = to.matched[0].components!.default
+    }
+
+    if (!authStore.isFetched) {
+        authStore.fetchUser().then(processRouteNavigation)
+    } else {
+        processRouteNavigation()
+    }
 })
 
 router.afterEach((to) => {

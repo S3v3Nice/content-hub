@@ -9,6 +9,7 @@ import {getErrorMessageByCode, ToastHelper} from '@/helpers'
 import Dialog from 'primevue/dialog'
 import CategoryForm from '@/components/dashboard/CategoryForm.vue'
 import type {PostCategory} from '@/types'
+import Skeleton from 'primevue/skeleton'
 
 interface ResponseData {
     success: boolean
@@ -44,6 +45,7 @@ loadRecords()
 
 function loadRecords() {
     isLoading.value = true
+    records.value = []
 
     axios.get(apiUrl, {params: loadRecordsData.value}).then((response) => {
         const data: ResponseData = response.data
@@ -147,7 +149,7 @@ function onRecordSave() {
         />
     </div>
     <DataTable
-        :value="records"
+        :value="isLoading ? new Array(3) : records"
         lazy
         paginator
         removable-sort
@@ -158,21 +160,51 @@ function onRecordSave() {
         @page="onChangePage($event)"
         @sort="onSort($event)"
     >
-        <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-        <Column :sortable="true" field="slug" header="Ярлык"></Column>
-        <Column :sortable="true" field="name" header="Название"></Column>
+        <Column v-if="isLoading" headerStyle="width: 3rem">
+            <template #header>
+                <Skeleton width="1.4rem" height="1.4rem"/>
+            </template>
+            <template #body>
+                <Skeleton width="1.4rem" height="1.4rem"/>
+            </template>
+        </Column>
+        <Column v-else selectionMode="multiple" headerStyle="width: 3rem"/>
+        <Column :sortable="true" field="slug" header="Ярлык">
+            <template #body="{ data, field }: {data: PostCategory, field: string}">
+                <Skeleton v-if="isLoading" width="6rem"/>
+                <template v-else>{{ data[field] }}</template>
+            </template>
+        </Column>
+        <Column :sortable="true" field="name" header="Название">
+            <template #body="{ data, field }: {data: PostCategory, field: string}">
+                <Skeleton v-if="isLoading" width="10rem"/>
+                <template v-else>{{ data[field] }}</template>
+            </template>
+        </Column>
         <Column>
-            <template #body="{ data }">
-                <div class="flex align-items-center gap-2">
-                    <Button icon="fa-solid fa-pen" outlined rounded @click="onEditClick(data)" title="Редактировать"/>
-                    <Button
-                        icon="fa-solid fa-trash"
-                        outlined
-                        rounded
-                        severity="danger"
-                        @click="onDeleteClick(data)"
-                        title="Удалить"
-                    />
+            <template #body="{ data }: {data: PostCategory}">
+                <div class="flex gap-2">
+                    <template v-if="isLoading">
+                        <Skeleton shape="circle" size="2.5rem"/>
+                        <Skeleton shape="circle" size="2.5rem"/>
+                    </template>
+                    <template v-else>
+                        <Button
+                            icon="fa-solid fa-pen"
+                            outlined
+                            rounded
+                            title="Редактировать"
+                            @click="onEditClick(data)"
+                        />
+                        <Button
+                            icon="fa-solid fa-trash"
+                            outlined
+                            rounded
+                            severity="danger"
+                            @click="onDeleteClick(data)"
+                            title="Удалить"
+                        />
+                    </template>
                 </div>
             </template>
         </Column>
@@ -185,6 +217,7 @@ function onRecordSave() {
         :modal="true"
         :draggable="false"
         :dismissable-mask="true"
+        :block-scroll="true"
         @update:visible="() => isAddRecordModal = !isAddRecordModal"
         style="width: 30rem;"
     >
@@ -203,7 +236,7 @@ function onRecordSave() {
     >
         <div class="flex">
             <span class="fa-solid fa-triangle-exclamation mr-3" style="font-size: 2rem"/>
-            Вы действительно хотите удалить выбранные категории?
+            Вы действительно хотите удалить выбранные категории (всего {{ selectedRecords.length }})?
         </div>
 
         <div class="flex justify-end gap-2 mt-2">

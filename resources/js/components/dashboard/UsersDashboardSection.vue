@@ -7,10 +7,11 @@ import Button from 'primevue/button'
 import {ref} from 'vue'
 import axios, {type AxiosError} from 'axios'
 import {getErrorMessageByCode, ToastHelper} from '@/helpers'
-import {type User, UserRole} from '@/types'
+import {type PostCategory, type User, UserRole} from '@/types'
 import Dialog from 'primevue/dialog'
 import UserForm from '@/components/dashboard/UserForm.vue'
 import {useAuthStore} from '@/stores/auth'
+import Skeleton from 'primevue/skeleton'
 
 interface ResponseData {
     success: boolean
@@ -52,6 +53,7 @@ loadRecords()
 
 function loadRecords() {
     isLoading.value = true
+    records.value = []
 
     axios.get(apiUrl, {params: loadRecordsData.value}).then((response) => {
         const data: ResponseData = response.data
@@ -171,7 +173,7 @@ function onRecordSave() {
     </div>
 
     <DataTable
-        :value="records"
+        :value="isLoading ? new Array(3) : records"
         lazy
         paginator
         removable-sort
@@ -182,13 +184,27 @@ function onRecordSave() {
         @page="onChangePage($event)"
         @sort="onSort($event)"
     >
-        <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-        <Column :sortable="true" field="username" header="Имя"></Column>
+        <Column v-if="isLoading" headerStyle="width: 3rem">
+            <template #header>
+                <Skeleton width="1.4rem" height="1.4rem"/>
+            </template>
+            <template #body>
+                <Skeleton width="1.4rem" height="1.4rem"/>
+            </template>
+        </Column>
+        <Column v-else selectionMode="multiple" headerStyle="width: 3rem"/>
+        <Column :sortable="true" field="username" header="Имя">
+            <template #body="{ data, field }: {data: PostCategory, field: string}">
+                <Skeleton v-if="isLoading" width="6.5rem"/>
+                <template v-else>{{ data[field] }}</template>
+            </template>
+        </Column>
         <Column :sortable="true" field="email" header="E-mail">
-            <template #body="{ data }">
-                <div class="flex align-items-center gap-2">
-                    <span>{{ data['email'] }}</span>
-                    <Tag v-if="!data['email_verified_at']" severity="warning" title="Не подтверждён">
+            <template #body="{ data }: {data: User}">
+                <Skeleton v-if="isLoading" width="14rem"/>
+                <div v-else class="flex align-items-center gap-2">
+                    <span>{{ data.email }}</span>
+                    <Tag v-if="!data.email_verified_at" severity="warning" title="Не подтверждён">
                         <template #icon>
                             <span class="fa-solid fa-triangle-exclamation"></span>
                         </template>
@@ -197,30 +213,37 @@ function onRecordSave() {
             </template>
         </Column>
         <Column :sortable="true" field="role" header="Роль">
-            <template #body="{ data }">
-                <Tag :value="getUserRoleLabel(data['role'])" :severity="getUserRoleSeverity(data['role'])"></Tag>
+            <template #body="{ data }: {data: User}">
+                <Skeleton v-if="isLoading" width="6rem"/>
+                <Tag v-else :value="getUserRoleLabel(data.role!)" :severity="getUserRoleSeverity(data.role!)"></Tag>
             </template>
         </Column>
         <Column>
-            <template #body="{ data }">
-                <div class="flex align-items-center gap-2">
-                    <Button
-                        v-if="authStore.isAdmin"
-                        icon="fa-solid fa-pen"
-                        outlined
-                        rounded
-                        title="Редактировать"
-                        @click="onEditClick(data)"
-                    />
-                    <Button
-                        v-if="authStore.isAdmin"
-                        icon="fa-solid fa-trash"
-                        outlined
-                        rounded
-                        severity="danger"
-                        title="Удалить"
-                        @click="onDeleteClick(data)"
-                    />
+            <template #body="{ data }: {data: User}">
+                <div class="flex gap-2">
+                    <template v-if="isLoading">
+                        <Skeleton shape="circle" size="2.5rem"/>
+                        <Skeleton shape="circle" size="2.5rem"/>
+                    </template>
+                    <template v-else>
+                        <Button
+                            v-if="authStore.isAdmin"
+                            icon="fa-solid fa-pen"
+                            outlined
+                            rounded
+                            title="Редактировать"
+                            @click="onEditClick(data)"
+                        />
+                        <Button
+                            v-if="authStore.isAdmin"
+                            icon="fa-solid fa-trash"
+                            outlined
+                            rounded
+                            severity="danger"
+                            title="Удалить"
+                            @click="onDeleteClick(data)"
+                        />
+                    </template>
                 </div>
             </template>
         </Column>
@@ -251,7 +274,7 @@ function onRecordSave() {
     >
         <div class="flex">
             <span class="fa-solid fa-triangle-exclamation mr-3" style="font-size: 2rem"/>
-            Вы действительно хотите удалить выбранных пользователей?
+            Вы действительно хотите удалить выбранных пользователей (всего {{ selectedRecords.length }})?
         </div>
 
         <div class="flex justify-end gap-2 mt-2">

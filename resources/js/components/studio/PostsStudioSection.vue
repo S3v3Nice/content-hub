@@ -9,8 +9,8 @@ import axios, {type AxiosError} from 'axios'
 import {RouterLink} from 'vue-router'
 import {useAuthStore} from '@/stores/auth'
 import Button from 'primevue/button'
-import ProgressSpinner from 'primevue/progressspinner'
 import PostSingleActionsBar from '@/components/post/PostSingleActionsBar.vue'
+import Skeleton from 'primevue/skeleton'
 
 interface PostLoadResponseData {
     success: boolean
@@ -38,6 +38,7 @@ loadPosts()
 
 function loadPosts() {
     isLoading.value = true
+    posts.value = []
 
     axios.get(`/api/users/${authStore.id}/posts`, {params: loadRequestData}).then((response) => {
         const responseData: PostLoadResponseData = response.data
@@ -65,17 +66,38 @@ function onPageChange(event: PageState) {
 
 <template>
     <RouterLink :to="{name: 'create-post'}">
-        <Button icon="fa-solid fa-plus" label="Создать" outlined class="mb-3"/>
+        <Button icon="fa-solid fa-plus" label="Создать" outlined size="small" class="mb-3"/>
     </RouterLink>
-    <div v-if="isLoading" class="flex items-center">
-        <ProgressSpinner/>
+    <div v-if="isLoading" class="flex flex-col rounded-md border">
+        <div v-for="i in 3" class="flex xs:grid grid-cols-[6rem,1fr] gap-2 p-3 [&:not(:first-child)]:border-t">
+            <Skeleton height="4.5rem" class="hidden xs:block"/>
+            <div class="flex flex-col w-full">
+                <div class="flex mt-1 gap-2 items-center">
+                    <Skeleton height="0.6rem" width="6rem"/>
+                </div>
+                <div class="flex flex-col mt-4 gap-2">
+                    <Skeleton height="0.9rem"/>
+                    <Skeleton height="0.9rem" width="70%"/>
+                </div>
+                <div class="flex mt-5 gap-2">
+                    <div v-for="i in 2" class="flex gap-1 items-center">
+                        <Skeleton shape="circle" size="1.25rem"/>
+                        <Skeleton height="0.6rem" width="2rem"/>
+                    </div>
+                    <div class="flex gap-1 ml-auto items-center">
+                        <Skeleton shape="circle" size="1.25rem"/>
+                        <Skeleton height="0.6rem" width="3rem"/>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <template v-else>
         <div v-if="posts.length === 0">
             <p class="text-muted">Материалы не найдены.</p>
         </div>
         <div v-else class="rounded-md border">
-            <div v-for="post in posts" class="flex flex-col gap-2 p-3 [&:not(:first-child)]:border-t">
+            <div v-for="post in posts" class="flex flex-col gap-2 px-3 pt-3 [&:not(:first-child)]:border-t">
                 <div class="flex xs:grid grid-cols-[6rem,1fr] gap-2">
                     <RouterLink :to="{ name: 'post', params: {slug: post.slug} }" class="hidden xs:block">
                         <img
@@ -92,17 +114,19 @@ function onPageChange(event: PageState) {
                                 <span>{{ getRelativeDate(post.version!.updated_at!) }}</span>
                             </span>
                         </div>
-                        <div class="flex gap-4 items-center mb-2">
-                            <RouterLink
-                                :to="{ name: 'post', params: {slug: post.slug} }"
-                                class="leading-5 lg:text-lg font-semibold hover:text-[var(--highlight-text-color)]
-                               transition-colors line-clamp-2"
-                            >
-                                {{ post.version!.title }}
-                            </RouterLink>
-                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-4 items-center">
+                                <RouterLink
+                                    :to="{ name: 'post', params: {slug: post.slug} }"
+                                    class="leading-5 lg:text-lg font-semibold hover:text-[var(--highlight-text-color)]
+                                           transition-colors line-clamp-2"
+                                >
+                                    {{ post.version!.title }}
+                                </RouterLink>
+                            </div>
 
-                        <PostSingleActionsBar :post="post"/>
+                            <PostSingleActionsBar :post="post"/>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -112,7 +136,7 @@ function onPageChange(event: PageState) {
         :rows="loadRequestData.per_page"
         :totalRecords="totalRecords"
         @page="onPageChange"
-        :class="{'hidden': isLoading || posts.length === 0}"
+        :class="{'hidden': !isLoading && posts.length === 0}"
     />
 </template>
 

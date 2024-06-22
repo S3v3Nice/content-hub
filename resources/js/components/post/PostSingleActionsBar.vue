@@ -66,6 +66,7 @@ function onLikeClick() {
                 :severity="post.is_liked ? 'danger' : 'secondary'"
                 :icon="`fa-heart ${post.is_liked ? 'fa-solid' : 'fa-regular'}`"
                 @click="onLikeClick"
+                class="-ml-2.5"
             />
             <p class="text-sm" :class="{'p-error': post.is_liked}">{{ post.like_count }}</p>
         </div>

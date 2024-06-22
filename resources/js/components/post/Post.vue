@@ -220,7 +220,7 @@ function onNewCommentEditorClick() {
                     <PostSingleActionsBar
                         :post="post"
                         class="flex sticky bottom-0 rounded-b-xl border-t overflow-x-auto
-                               whitespace-nowrap surface-overlay px-2"
+                               whitespace-nowrap surface-overlay px-4"
                     />
                 </div>
             </div>
@@ -256,7 +256,7 @@ function onNewCommentEditorClick() {
 
                 <div ref="commentsBlock">
                     <div v-if="isLoadingComments" class="flex flex-col gap-6 mt-8">
-                        <div v-for="i in Math.min(post.comment_count, 5)" class="flex gap-2">
+                        <div v-for="i in 3" class="flex gap-2">
                             <Skeleton shape="circle" size="2rem"/>
                             <div class="flex flex-col flex-1 gap-4">
                                 <div class="flex gap-2 items-center">

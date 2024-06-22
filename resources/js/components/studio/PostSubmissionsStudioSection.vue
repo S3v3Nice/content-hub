@@ -10,9 +10,9 @@ import {RouterLink} from 'vue-router'
 import {useAuthStore} from '@/stores/auth'
 import type {MenuItem} from 'primevue/menuitem'
 import TabMenu, {type TabMenuChangeEvent} from 'primevue/tabmenu'
-import ProgressSpinner from 'primevue/progressspinner'
 import Button from 'primevue/button'
 import PostVersionCard from '@/components/post/PostVersionCard.vue'
+import Skeleton from 'primevue/skeleton'
 
 interface PostVersionLoadResponseData {
     success: boolean
@@ -48,7 +48,6 @@ loadPostVersions()
 
 function loadPostVersions() {
     isLoading.value = true
-
     postVersions.value = []
 
     axios.get(`/api/users/${authStore.id}/post-versions`, {params: loadRequestData}).then((response) => {
@@ -75,20 +74,36 @@ function onPageChange(event: PageState) {
 }
 
 function onTabChange(event: TabMenuChangeEvent) {
-    loadRequestData.status = tabs.value[event.index].status
-    loadPostVersions()
+    const selectedStatus = tabs.value[event.index].status
+    if (loadRequestData.status !== selectedStatus) {
+        loadRequestData.status = selectedStatus
+        loadRequestData.page = 1
+        totalRecords.value = 0
+        loadPostVersions()
+    }
 }
 </script>
 
 <template>
     <RouterLink :to="{name: 'create-post'}">
-        <Button icon="fa-solid fa-plus" label="Создать" outlined class="mb-3"/>
+        <Button icon="fa-solid fa-plus" label="Создать" outlined size="small" class="mb-3"/>
     </RouterLink>
 
     <TabMenu class="mb-4" :model="tabs" @tab-change="onTabChange"/>
 
-    <div v-if="isLoading" class="flex items-center">
-        <ProgressSpinner/>
+    <div v-if="isLoading" class="flex flex-col rounded-md border">
+        <div v-for="i in 3" class="flex xs:grid grid-cols-[6rem,1fr] gap-2 p-3 [&:not(:first-child)]:border-t">
+            <Skeleton height="4.5rem" class="hidden xs:block"/>
+            <div class="flex flex-col w-full">
+                <div class="flex mt-1 gap-2 items-center">
+                    <Skeleton height="0.6rem" width="6rem"/>
+                </div>
+                <div class="flex flex-col mt-4 gap-2">
+                    <Skeleton height="0.9rem"/>
+                    <Skeleton height="0.9rem" width="70%"/>
+                </div>
+            </div>
+        </div>
     </div>
     <template v-else>
         <div v-if="postVersions.length === 0">
@@ -108,7 +123,7 @@ function onTabChange(event: TabMenuChangeEvent) {
         :rows="loadRequestData.per_page"
         :totalRecords="totalRecords"
         @page="onPageChange"
-        :class="{'hidden': isLoading || postVersions.length === 0}"
+        :class="{'hidden': !isLoading && postVersions.length === 0}"
     />
 </template>
 

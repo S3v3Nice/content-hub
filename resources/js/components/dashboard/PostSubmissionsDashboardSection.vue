@@ -9,6 +9,7 @@ import axios, {type AxiosError} from 'axios'
 import PostVersionCard from '@/components/post/PostVersionCard.vue'
 import type {MenuItem} from 'primevue/menuitem'
 import TabMenu, {type TabMenuChangeEvent} from 'primevue/tabmenu'
+import Skeleton from 'primevue/skeleton'
 
 interface PostVersionLoadResponseData {
     success: boolean
@@ -33,7 +34,7 @@ const loadRequestData = reactive({
 })
 
 const tabs = ref<MenuItem[]>([
-    {label: 'На проверку', icon: 'fa-solid fa-hourglass-half', status: PostVersionStatus.PENDING},
+    {label: 'Ожидающие', icon: 'fa-solid fa-hourglass-half', status: PostVersionStatus.PENDING},
     {label: 'Принятые', icon: 'fa-solid fa-check-circle', status: PostVersionStatus.ACCEPTED},
     {label: 'Отклонённые', icon: 'fa-solid fa-times-circle', status: PostVersionStatus.REJECTED},
 ])
@@ -42,6 +43,7 @@ loadPostVersions()
 
 function loadPostVersions() {
     isLoading.value = true
+    postVersions.value = []
 
     axios.get('/api/post-versions', {params: loadRequestData}).then((response) => {
         const responseData: PostVersionLoadResponseData = response.data
@@ -67,15 +69,35 @@ function onPageChange(event: PageState) {
 }
 
 function onTabChange(event: TabMenuChangeEvent) {
-    loadRequestData.status = tabs.value[event.index].status
-    loadPostVersions()
+    const selectedStatus = tabs.value[event.index].status
+    if (loadRequestData.status !== selectedStatus) {
+        loadRequestData.status = selectedStatus
+        loadRequestData.page = 1
+        totalRecords.value = 0
+        loadPostVersions()
+    }
 }
 </script>
 
 <template>
     <TabMenu class="mb-4" :model="tabs" @tab-change="onTabChange"/>
 
-    <template v-if="!isLoading">
+    <div v-if="isLoading" class="flex flex-col rounded-md border">
+        <div v-for="i in 3" class="flex xs:grid grid-cols-[6rem,1fr] gap-2 p-3 [&:not(:first-child)]:border-t">
+            <Skeleton height="4.5rem" class="hidden xs:block"/>
+            <div class="flex flex-col w-full">
+                <div class="flex mt-1 gap-3 items-center">
+                    <Skeleton height="0.6rem" width="4rem"/>
+                    <Skeleton height="0.6rem" width="6rem"/>
+                </div>
+                <div class="flex flex-col mt-4 gap-2">
+                    <Skeleton height="0.9rem"/>
+                    <Skeleton height="0.9rem" width="70%"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <template v-else>
         <div v-if="postVersions.length === 0">
             <p class="text-muted">Заявки не найдены.</p>
         </div>
@@ -91,7 +113,7 @@ function onTabChange(event: TabMenuChangeEvent) {
         :rows="loadRequestData.per_page"
         :totalRecords="totalRecords"
         @page="onPageChange"
-        :class="{'hidden': isLoading || postVersions.length === 0}"
+        :class="{'hidden': !isLoading && postVersions.length === 0}"
     />
 </template>
 

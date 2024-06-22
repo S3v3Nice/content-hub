@@ -190,7 +190,7 @@ function getTotalRecordsCount() {
                     <Skeleton height="0.7rem" width="95%"/>
                     <Skeleton height="0.7rem" width="40%"/>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex mt-3 gap-2">
                     <div v-for="i in 2" class="flex gap-1 items-center">
                         <Skeleton shape="circle" size="1.25rem"/>
                         <Skeleton height="0.6rem" width="2rem"/>
@@ -210,7 +210,7 @@ function getTotalRecordsCount() {
         <div v-else class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <div
                 v-for="post in posts"
-                class="flex flex-col surface-overlay rounded-lg border p-4 gap-3"
+                class="flex flex-col surface-overlay rounded-lg border px-4 pt-4 gap-3"
             >
                 <RouterLink :to="{name: 'post', params: {slug: post.slug}}">
                     <img :src="post.version!.cover_url" alt="" class="post-cover"/>

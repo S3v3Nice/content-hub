@@ -126,7 +126,7 @@ function onSearch() {
 <template>
     <div class="header-fixed flex flex-col">
         <div class="h-[var(--header-height)] surface-overlay p-2 lg:px-0 border-b flex items-center">
-            <div class="page-container flex gap-4 h-full items-center">
+            <div class="page-container flex gap-2 h-full items-center">
                 <Button
                     icon="fa-solid fa-bars"
                     text
@@ -135,6 +135,7 @@ function onSearch() {
                     aria-controls="user-menu"
                     aria-label="Меню навигации"
                     @click="isNavigationSidebarVisible = true"
+                    class="-ml-0.5 md:-ml-2.5"
                 />
 
                 <RouterLink :to="{name: 'home'}" class="h-[70%] sm:h-[90%]">
@@ -166,6 +167,7 @@ function onSearch() {
                         aria-haspopup="true"
                         aria-controls="user-menu"
                         aria-label="Меню пользователя"
+                        class="mr-2 md:mr-0"
                     />
                     <Button
                         v-else
@@ -174,6 +176,7 @@ function onSearch() {
                         aria-haspopup="true"
                         aria-controls="user-menu"
                         aria-label="Меню пользователя"
+                        class="mr-2 md:mr-0"
                     >
                         <Avatar :label="authStore.username![0]" shape="circle"/>
                     </Button>

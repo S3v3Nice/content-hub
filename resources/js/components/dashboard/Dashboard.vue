@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue'
-import Skeleton from 'primevue/skeleton'
 import {useRoute} from 'vue-router'
 import Button from 'primevue/button'
 import {useAuthStore} from '@/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()
-const isLoadingSection = ref(false)
 const isMobileMenuShown = ref(false)
 
 interface DashboardMenuItem {
@@ -35,24 +33,19 @@ const menuItems = ref<DashboardMenuItem[]>([
         visible: authStore.isAdmin
     },
 ])
-const currentMenuItem = ref<DashboardMenuItem>(getActualCurrentMenuItem())
+const activeMenuItem = ref<DashboardMenuItem>(getActualActiveMenuItem())
 
 watch(route, () => {
-    isLoadingSection.value = false
-    currentMenuItem.value = getActualCurrentMenuItem()
+    activeMenuItem.value = getActualActiveMenuItem()
 })
 
-function getActualCurrentMenuItem() {
+function getActualActiveMenuItem() {
     return menuItems.value.find(item => item.route === route.name)!
 }
 
 function onSectionSelect(item: DashboardMenuItem) {
     isMobileMenuShown.value = false
-
-    if (item !== currentMenuItem.value) {
-        currentMenuItem.value = item
-        isLoadingSection.value = true
-    }
+    activeMenuItem.value = item
 }
 
 const visibleMenuItems = computed<DashboardMenuItem[]>(() => {
@@ -74,7 +67,7 @@ const visibleMenuItems = computed<DashboardMenuItem[]>(() => {
         />
         <div>
             <p class="text-xs text-muted font-semibold">Панель управления</p>
-            <p class="text-xl font-semibold">{{ currentMenuItem.label }}</p>
+            <p class="text-xl font-semibold">{{ activeMenuItem.label }}</p>
         </div>
     </div>
 
@@ -91,7 +84,7 @@ const visibleMenuItems = computed<DashboardMenuItem[]>(() => {
                     :to="{ name: item.route }"
                     @click="onSectionSelect(item)"
                 >
-                    <Button class="w-full gap-2" plain :text="item !== currentMenuItem">
+                    <Button class="w-full gap-2" plain :text="item !== activeMenuItem">
                         <span class="w-[20px]" :class="item.icon"/>
                         <p>{{ item.label }}</p>
                     </Button>
@@ -102,14 +95,7 @@ const visibleMenuItems = computed<DashboardMenuItem[]>(() => {
         <div class="lg:block p-4 surface-overlay rounded-xl border flex-1 overflow-x-auto"
              :class="{ 'hidden': isMobileMenuShown, 'block': !isMobileMenuShown }"
         >
-            <RouterView v-if="!isLoadingSection"/>
-            <div v-else>
-                <Skeleton width="9rem" height="1.5rem" class="mb-1"></Skeleton>
-                <Skeleton height="3rem" class="mb-7"></Skeleton>
-                <Skeleton width="9rem" height="1.5rem" class="mb-1"></Skeleton>
-                <Skeleton height="3rem" class="mb-7"></Skeleton>
-                <Skeleton width="11rem" height="3rem"></Skeleton>
-            </div>
+            <RouterView/>
         </div>
     </div>
 </template>

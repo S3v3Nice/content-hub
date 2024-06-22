@@ -13,6 +13,10 @@
     --header-with-margin-height: calc(var(--header-height) + var(--header-margin));
 }
 
+html {
+    overflow-y: scroll;
+}
+
 .p-button-icon {
     min-width: 16px;
 }

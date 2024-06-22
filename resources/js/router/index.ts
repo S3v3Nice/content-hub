@@ -18,13 +18,18 @@ function disconnectHashObserver() {
     }
 }
 
-function getCssVariableValue(variable: string) {
-    return getComputedStyle(document.documentElement).getPropertyValue(variable).trim()
-}
+function getHashScrollTopOffset() {
+    function getCssVariableValue(variable: string) {
+        return getComputedStyle(document.documentElement).getPropertyValue(variable).trim()
+    }
 
-function remToPixels(remValue: string) {
-    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
-    return parseFloat(remValue) * rootFontSize
+    function remToPixels(remValue: string) {
+        const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+        return parseFloat(remValue) * rootFontSize
+    }
+
+    const headerHeight = remToPixels(getCssVariableValue('--header-height'))
+    return headerHeight + 16
 }
 
 const router = createRouter({
@@ -35,17 +40,28 @@ const router = createRouter({
             if (to.hash) {
                 disconnectHashObserver()
 
-                hashObserver = new ResizeObserver(entries => {
-                    const element = entries[0].target.querySelector(to.hash)
-                    if (element) {
-                        disconnectHashObserver()
-                        const headerHeight = remToPixels(getCssVariableValue('--header-height'))
-                        resolve({el: to.hash, top: headerHeight + 16, behavior: 'smooth'})
-                    }
-                })
-                hashObserver.observe(document.body)
+                if (to.path === from.path) {
+                    resolve({el: to.hash, top: getHashScrollTopOffset(), behavior: 'smooth'})
+                } else {
+                    let resolveTimeout: NodeJS.Timeout | undefined = undefined
 
-                hashObserverDisconnectTimeout = setTimeout(disconnectHashObserver, 60000)
+                    hashObserver = new ResizeObserver(entries => {
+                        if (resolveTimeout) {
+                            resolveTimeout.refresh()
+                        } else {
+                            const element = entries[0].target.querySelector(to.hash)
+                            if (element) {
+                                resolveTimeout = setTimeout(() => {
+                                    disconnectHashObserver()
+                                    resolve({el: element, top: getHashScrollTopOffset(), behavior: 'smooth'})
+                                }, 500)
+                            }
+                        }
+                    })
+                    hashObserver.observe(document.body)
+
+                    hashObserverDisconnectTimeout = setTimeout(disconnectHashObserver, 10000)
+                }
             } else if (savedPosition) {
                 savedPosition.behavior = 'smooth'
 

@@ -2,10 +2,10 @@
 import {computed, type PropType} from 'vue'
 import {type PostVersion, PostVersionActionType as ActionType, PostVersionStatus} from '@/types'
 import {RouterLink} from 'vue-router'
-import Avatar from 'primevue/avatar'
 import {getFullDate, getRelativeDate} from '@/helpers'
 import Tag from 'primevue/tag'
 import PostVersionActionComponent from '@/components/post/PostVersionAction.vue'
+import UserAvatar from '@/components/user/UserAvatar.vue'
 
 const props = defineProps({
     postVersion: {
@@ -54,11 +54,11 @@ const lastAction = computed(() => props.postVersion!.actions!.at(props.postVersi
                     >
                         {{ postVersion.title }}
                     </RouterLink>
-                    <Avatar
+
+                    <UserAvatar
                         v-if="postVersion.assigned_moderator && postVersion.status !== PostVersionStatus.DRAFT"
+                        :user="postVersion.assigned_moderator"
                         :title="`Назначено на ${postVersion.assigned_moderator.username}`"
-                        :label="postVersion.assigned_moderator.username![0]"
-                        shape="circle"
                         class="ml-auto min-w-[2rem]"
                     />
                 </div>

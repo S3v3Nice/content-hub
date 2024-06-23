@@ -16,7 +16,7 @@ import {Blockquote} from '@tiptap/extension-blockquote'
 import {Image} from '@tiptap/extension-image'
 import CoverUpload from '@/components/post/editor/CoverUpload.vue'
 import Editor from '@/components/editor/Editor.vue'
-import Avatar from 'primevue/avatar'
+import UserAvatar from '@/components/user/UserAvatar.vue'
 
 defineProps({
     author: {
@@ -96,7 +96,7 @@ const contentEditorExtensions = [
 
             <div class="surface-overlay rounded-xl border mt-4">
                 <div class="flex gap-2 items-center m-4 lg:mx-10">
-                    <Avatar :label="author.username![0]" shape="circle"/>
+                    <UserAvatar :user="author"/>
                     <p class="text-sm">{{ author.username }}</p>
                 </div>
 

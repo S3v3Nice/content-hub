@@ -4,7 +4,7 @@ import {computed, nextTick, onMounted, ref} from 'vue'
 import axios from 'axios'
 import useThemeManager from '@/theme-manager'
 import Button from 'primevue/button'
-import Avatar from 'primevue/avatar'
+import UserAvatar from '@/components/user/UserAvatar.vue'
 import Menu from 'primevue/menu'
 import OverlayPanel from 'primevue/overlaypanel'
 import Sidebar from 'primevue/sidebar'
@@ -178,7 +178,7 @@ function onSearch() {
                         aria-label="Меню пользователя"
                         class="mr-2 md:mr-0"
                     >
-                        <Avatar :label="authStore.username![0]" shape="circle"/>
+                        <UserAvatar :user="authStore.user"/>
                     </Button>
                 </div>
             </div>
@@ -204,7 +204,7 @@ function onSearch() {
             >
                 <template v-if="authStore.isAuthenticated" #start>
             <span class="flex p-2 gap-2 items-center">
-                <Avatar size="large" :label="authStore.username![0]" shape="circle"/>
+                <UserAvatar :user="authStore.user" size="large"/>
                 <span>{{ authStore.username }}</span>
             </span>
                 </template>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import Button from 'primevue/button'
 import PostCommentEditor from '@/components/post/comment/PostCommentEditor.vue'
-import Avatar from 'primevue/avatar'
 import Menu, {type MenuPassThroughOptions} from 'primevue/menu'
 import {type PostComment} from '@/types'
 import {computed, onMounted, onUnmounted, type PropType, reactive, ref} from 'vue'
@@ -12,6 +11,7 @@ import {useAuthStore} from '@/stores/auth'
 import type {MenuItem} from 'primevue/menuitem'
 import {useRoute, useRouter} from 'vue-router'
 import {useModalStore} from '@/stores/modal'
+import UserAvatar from '@/components/user/UserAvatar.vue'
 
 interface EditedComment {
     errors?: { [key: string]: string[] }
@@ -246,7 +246,7 @@ function onReplyClick() {
             </div>
         </div>
         <template v-else>
-            <Avatar :label="comment.user!.username![0]" shape="circle" class="min-w-[2rem]"/>
+            <UserAvatar :user="comment.user" class="min-w-[2rem]"/>
             <div class="flex flex-col gap-2 flex-1 min-w-0">
                 <div
                     class="comment-header flex gap-2 px-1 -ml-1 rounded items-center transition-all duration-300 border border-[var(--primary-color)]"
@@ -268,7 +268,7 @@ function onReplyClick() {
                 <div class="flex flex-col gap-1">
                     <span v-if="comment.parent_comment?.parent_comment_id">
                         <RouterLink
-                            :to="{name: 'post', params: {slug: comment.post!.slug}, hash: getCommentUrlHash(comment.parent_comment_id), replace: true}"
+                            :to="{name: 'post', params: {slug: comment.post!.slug}, hash: getCommentUrlHash(comment.parent_comment_id!), replace: true}"
                             class="text-[var(--primary-color)]"
                         >
                             @{{ comment.parent_comment!.user!.username }}

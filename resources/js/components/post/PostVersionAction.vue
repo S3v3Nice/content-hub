@@ -7,8 +7,8 @@ import {
     type PostVersionActionRequestChanges,
     PostVersionActionType
 } from '@/types'
-import Avatar from 'primevue/avatar'
 import {getFullDate, getRelativeDate} from '@/helpers'
+import UserAvatar from '@/components/user/UserAvatar.vue'
 
 const props = defineProps({
     action: {
@@ -55,20 +55,15 @@ const props = defineProps({
     </div>
     <div v-else class="flex flex-col xs:flex-row gap-1 xs:gap-2">
         <p
-            :title="getFullDate(action.created_at)"
+            :title="getFullDate(action.created_at!)"
             class="text-muted text-xs whitespace-nowrap leading-6"
         >
-            {{ getRelativeDate(action.created_at) }}
+            {{ getRelativeDate(action.created_at!) }}
         </p>
 
         <div class="flex gap-2 items-start w-full">
             <div class="flex gap-3">
-                <Avatar
-                    v-if="action.type === PostVersionActionType.SUBMIT"
-                    :label="action.user === null ? '?' : action.user!.username[0]"
-                    shape="circle"
-                    class="min-w-[2rem]"
-                />
+                <UserAvatar v-if="action.type === PostVersionActionType.SUBMIT" :user="action.user"/>
                 <span
                     v-else
                     class="fa-solid fa-hammer text-[var(--surface-500)] min-w-[2rem] min-h-[2rem] text-center pt-1"

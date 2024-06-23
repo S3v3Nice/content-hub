@@ -32,8 +32,8 @@ import slugify from '@sindresorhus/slugify'
 import Tag from 'primevue/tag'
 import {useAuthStore} from '@/stores/auth'
 import {useRouter} from 'vue-router'
-import Avatar from 'primevue/avatar'
 import Dropdown, {type DropdownPassThroughOptions} from 'primevue/dropdown'
+import UserAvatar from '@/components/user/UserAvatar.vue'
 
 const props = defineProps({
     id: {
@@ -68,7 +68,7 @@ const customSlug = ref<string>()
 
 const moderatorOptions = computed(() => {
     if (!moderators.value) {
-        const options = []
+        const options: User[] = []
         if (postVersion.value!.assigned_moderator) {
             options.push(postVersion.value!.assigned_moderator)
         }
@@ -374,7 +374,7 @@ function requestChanges() {
                                 :severity="isFirstVersion ? 'info' : 'primary'"
                             />
                             <div
-                                :title="`${wasUpdated ? 'Обновлено' : 'Создано'} ${getFullDate(postVersion!.updated_at)}`"
+                                :title="`${wasUpdated ? 'Обновлено' : 'Создано'} ${getFullDate(postVersion!.updated_at!)}`"
                                 class="text-muted text-xs lg:text-sm flex items-center gap-1.5"
                             >
                                 <span
@@ -382,7 +382,7 @@ function requestChanges() {
                                     :class="{'fa-regular fa-calendar': !wasUpdated,
                                              'fa-solid fa-clock-rotate-left': wasUpdated}"
                                 />
-                                <p>{{ getRelativeDate(postVersion!.updated_at) }}</p>
+                                <p>{{ getRelativeDate(postVersion!.updated_at!) }}</p>
                             </div>
                         </div>
                     </div>
@@ -403,9 +403,9 @@ function requestChanges() {
                                 :pt="moderatorDropdownPassThroughOptions"
                                 @before-show="loadModerators"
                             >
-                                <template #value="{value, placeholder}: {value: bigint|undefined}">
+                                <template #value="{placeholder}: {placeholder: string}">
                                     <div v-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
-                                        <Avatar :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>
+                                        <UserAvatar :user="postVersion!.assigned_moderator"/>
                                         <p class="hidden xs:block text-sm line-clamp-1">
                                             {{ postVersion!.assigned_moderator.username }}
                                         </p>
@@ -414,16 +414,16 @@ function requestChanges() {
                                         {{ placeholder }}
                                     </span>
                                 </template>
-                                <template #option="{option, index}: { option: User }">
+                                <template #option="{option}: { option: User}">
                                     <div class="flex gap-2 items-center py-2 px-3 w-full"
                                          @click="assignModerator(option)">
-                                        <Avatar :label="option.username![0]" shape="circle"/>
+                                        <UserAvatar :user="option"/>
                                         <p class="text-sm line-clamp-1">{{ option.username }}</p>
                                     </div>
                                 </template>
                             </Dropdown>
                             <div v-else-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
-                                <Avatar :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>
+                                <UserAvatar :user="postVersion!.assigned_moderator"/>
                                 <p class="text-sm line-clamp-1">{{ postVersion!.assigned_moderator.username }}</p>
                             </div>
                             <p v-else class="text-sm">–</p>
@@ -435,7 +435,7 @@ function requestChanges() {
                                 :to="{name: 'post', params: {slug: postVersion!.post.slug}}"
                                 class="text-[var(--primary-color)] hover:underline line-clamp-2 text-sm xs:text-base"
                             >
-                                {{ postVersion!.post.version.title }}
+                                {{ postVersion!.post.version!.title }}
                             </RouterLink>
                         </div>
 
@@ -450,7 +450,7 @@ function requestChanges() {
 
                     <div v-if="postVersion.actions!.length !== 0" class="flex flex-col gap-2 lg:hidden">
                         <PostVersionActionComponent
-                            v-if="[PostVersionActionType.REJECT, PostVersionActionType.REQUEST_CHANGES].includes(lastAction?.type)"
+                            v-if="[PostVersionActionType.REJECT, PostVersionActionType.REQUEST_CHANGES].includes(lastAction?.type!)"
                             :action="lastAction"
                             :minimized="true"
                         />
@@ -479,24 +479,24 @@ function requestChanges() {
                             class="w-full"
                             @before-show="loadModerators"
                         >
-                            <template #value="{value, placeholder}: {value: bigint|undefined}">
+                            <template #value="{placeholder}: {placeholder: string}">
                                 <div v-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
-                                    <Avatar :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>
+                                    <UserAvatar :user="postVersion!.assigned_moderator"/>
                                     <p class="text-sm line-clamp-1">{{ postVersion!.assigned_moderator.username }}</p>
                                 </div>
                                 <span v-else>
                                     {{ placeholder }}
                                 </span>
                             </template>
-                            <template #option="{option, index}: { option: User }">
+                            <template #option="{option}: { option: User }">
                                 <div class="flex gap-2 items-center py-2 px-3 w-full" @click="assignModerator(option)">
-                                    <Avatar :label="option.username![0]" shape="circle"/>
+                                    <UserAvatar :user="option"/>
                                     <p class="text-sm line-clamp-1">{{ option.username }}</p>
                                 </div>
                             </template>
                         </Dropdown>
                         <div v-else-if="postVersion!.assigned_moderator" class="flex gap-2 items-center">
-                            <Avatar :label="postVersion!.assigned_moderator.username![0]" shape="circle"/>
+                            <UserAvatar :user="postVersion!.assigned_moderator"/>
                             <p class="text-sm line-clamp-1">{{ postVersion!.assigned_moderator.username }}</p>
                         </div>
                         <p v-else class="text-sm">–</p>
@@ -508,7 +508,7 @@ function requestChanges() {
                             :to="{name: 'post', params: {slug: postVersion!.post.slug}}"
                             class="text-[var(--primary-color)] hover:underline line-clamp-2"
                         >
-                            {{ postVersion!.post.version.title }}
+                            {{ postVersion!.post.version!.title }}
                         </RouterLink>
                     </div>
 
@@ -519,7 +519,7 @@ function requestChanges() {
 
                     <div v-if="postVersion.actions!.length !== 0" class="sidebar-item flex flex-col gap-2">
                         <PostVersionActionComponent
-                            v-if="[PostVersionActionType.REJECT, PostVersionActionType.REQUEST_CHANGES].includes(lastAction?.type)"
+                            v-if="[PostVersionActionType.REJECT, PostVersionActionType.REQUEST_CHANGES].includes(lastAction?.type!)"
                             :action="lastAction"
                             :minimized="true"
                         />

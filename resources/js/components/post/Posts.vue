@@ -5,12 +5,12 @@ import {reactive, ref, watch} from 'vue'
 import {type Post} from '@/types'
 import axios, {type AxiosError} from 'axios'
 import Paginator, {type PageState} from 'primevue/paginator'
-import Avatar from 'primevue/avatar'
 import Button from 'primevue/button'
 import Dropdown, {type DropdownPassThroughOptions} from 'primevue/dropdown'
 import PostSingleActionsBar from '@/components/post/PostSingleActionsBar.vue'
 import Skeleton from 'primevue/skeleton'
 import {useRoute} from 'vue-router'
+import UserAvatar from '@/components/user/UserAvatar.vue'
 
 interface PostLoadResponseData {
     success: boolean
@@ -217,7 +217,7 @@ function getTotalRecordsCount() {
                 </RouterLink>
 
                 <div class="flex gap-2 items-center">
-                    <Avatar :label="post.version!.author!.username![0]" shape="circle"/>
+                    <UserAvatar :user="post.version!.author"/>
                     <p class="text-sm">{{ post.version!.author!.username }}</p>
                     <div
                         :title="`${wasPostUpdated(post) ? 'Обновлено' : 'Опубликовано'} ${getFullDate(post.updated_at)}`"

@@ -13,7 +13,6 @@ import {useToast} from 'primevue/usetoast'
 import {type Post, type PostComment} from '@/types'
 import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
-import Avatar from 'primevue/avatar'
 import Button from 'primevue/button'
 import Skeleton from 'primevue/skeleton'
 import PostSingleActionsBar from '@/components/post/PostSingleActionsBar.vue'
@@ -22,6 +21,7 @@ import PostCommentEditor from '@/components/post/comment/PostCommentEditor.vue'
 import {useAuthStore} from '@/stores/auth'
 import {useRoute} from 'vue-router'
 import {useModalStore} from '@/stores/modal'
+import UserAvatar from '@/components/user/UserAvatar.vue'
 
 interface EditedComment {
     errors?: { [key: string]: string[] }
@@ -191,7 +191,7 @@ function onNewCommentEditorClick() {
                     <div class="space-y-4 p-4">
                         <div class="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-3">
                             <div class="flex gap-2 items-center">
-                                <Avatar :label="post.version!.author!.username![0]" shape="circle"/>
+                                <UserAvatar :user="authStore.user"/>
                                 <p class="text-sm">{{ post.version!.author!.username }}</p>
                             </div>
                             <div class="flex gap-4">

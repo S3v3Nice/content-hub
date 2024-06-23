@@ -213,7 +213,7 @@ function onNewCommentEditorClick() {
                             </div>
                         </div>
                         <h1 class="post-title">{{ post!.version!.title }}</h1>
-                        <img :src="post.version!.cover_url" alt="" class="post-cover">
+                        <img :src="post.version!.cover_url" alt="" class="post-cover w-full">
                     </div>
 
                     <div v-html="post.version!.content" class="post-content p-4"/>

@@ -391,7 +391,11 @@ function requestChanges() {
                         class="grid grid-cols-[max-content,auto] justify-items-start items-center gap-y-2 gap-x-4
                                lg:hidden border-t pt-3"
                     >
-                        <div v-if="authStore.isModerator" class="header-details-item">
+                        <div
+                            v-if="authStore.isModerator &&
+                                  (postVersion.status !== PostVersionStatus.DRAFT || postVersion.assigned_moderator)"
+                            class="header-details-item"
+                        >
                             <p class="header-details-item-header">Модератор</p>
                             <Dropdown
                                 v-if="postVersion!.status === PostVersionStatus.PENDING"
@@ -465,7 +469,11 @@ function requestChanges() {
             </template>
             <template v-slot:sidebar>
                 <div class="flex flex-col">
-                    <div v-if="authStore.isModerator" class="sidebar-item flex flex-col gap-2 items-start">
+                    <div
+                        v-if="authStore.isModerator &&
+                              (postVersion.status !== PostVersionStatus.DRAFT || postVersion.assigned_moderator)"
+                        class="sidebar-item flex flex-col gap-2 items-start"
+                    >
                         <p class="sidebar-item-header">Модератор</p>
                         <Dropdown
                             v-if="postVersion!.status === PostVersionStatus.PENDING"

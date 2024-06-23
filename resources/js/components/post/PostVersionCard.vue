@@ -64,7 +64,7 @@ const lastAction = computed(() => props.postVersion!.actions!.at(props.postVersi
                 </div>
 
                 <PostVersionActionComponent
-                    v-if="[ActionType.REJECT, ActionType.REQUEST_CHANGES].includes(lastAction?.type!)"
+                    v-if="[ActionType.ACCEPT, ActionType.REJECT, ActionType.REQUEST_CHANGES].includes(lastAction?.type!)"
                     :action="lastAction"
                     :minimized="true"
                     class="mt-auto"

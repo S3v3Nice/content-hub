@@ -26,12 +26,12 @@ const props = defineProps({
     <div v-if="minimized" class="inline-block minimized-action">
         <span v-if="action.type === PostVersionActionType.SUBMIT">
             <span class="fa-solid fa-paper-plane text-muted mr-1.5"/>
-            <span>Отправлена заявка.</span>
+            <span>Отправлена заявка</span>
         </span>
         <span v-else>
             <span v-if="action.type === PostVersionActionType.ACCEPT">
                 <span class="fa-solid fa-circle-check text-[var(--green-500)] mr-1.5"/>
-                <span>Принято.</span>
+                <span>Принято</span>
             </span>
             <span v-else-if="action.type === PostVersionActionType.REJECT">
                 <span class="fa-solid fa-circle-xmark p-error mr-1.5"/>
@@ -47,9 +47,8 @@ const props = defineProps({
                 <span class="fa-solid fa-hammer text-muted mr-1.5"/>
                 Назначен модератор
                 <span class="text-[var(--primary-color)]">
-                    {{ (action.details as PostVersionActionAssignModerator).moderator!.username }}
+                    {{ (action.details as PostVersionActionAssignModerator).moderator!.username}}
                 </span>
-                <span>.</span>
             </span>
         </span>
     </div>

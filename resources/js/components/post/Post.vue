@@ -191,7 +191,7 @@ function onNewCommentEditorClick() {
                     <div class="space-y-4 p-4">
                         <div class="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-3">
                             <div class="flex gap-2 items-center">
-                                <UserAvatar :user="authStore.user"/>
+                                <UserAvatar :user="post.version!.author"/>
                                 <p class="text-sm">{{ post.version!.author!.username }}</p>
                             </div>
                             <div class="flex gap-4">

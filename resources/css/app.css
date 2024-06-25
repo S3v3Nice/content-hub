@@ -169,6 +169,7 @@ body.p-overflow-hidden {
         background: var(--surface-50);
         border-radius: 0.5rem;
         padding: 0.6rem 0.9rem;
+        overflow-x: auto;
 
         code {
             padding: 0;

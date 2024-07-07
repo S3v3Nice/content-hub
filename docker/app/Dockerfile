@@ -18,11 +18,27 @@ RUN \
       bcmath \
       gd \
       zip && \
-    pecl install  \
-      apfd && \
-    docker-php-ext-enable  \
-      apfd && \
     apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Clone APFD extension repository
+RUN git clone https://github.com/m6w6/ext-apfd.git /usr/src/php/ext/apfd
+
+# Build and install APFD extension
+RUN cd /usr/src/php/ext/apfd && \
+    phpize && \
+    ./configure && \
+    make && \
+    make install && \
+    docker-php-ext-enable apfd
+
+# Clean up
+RUN rm -rf /usr/src/php/ext/apfd && \
+    apt-get purge -y \
+      git \
+      autoconf \
+      build-essential && \
+    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install composer

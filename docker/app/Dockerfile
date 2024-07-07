@@ -42,7 +42,7 @@ RUN rm -rf /usr/src/php/ext/apfd && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install composer
-COPY --from=composer/composer:latest-bin /composer /usr/local/bin/composer
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
 # Set the uid, gid and home directory of the www-data user to default values
 RUN usermod  --uid 1000 www-data && \

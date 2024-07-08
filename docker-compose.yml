@@ -1,9 +1,7 @@
 services:
     nginx:
         container_name: content-hub_nginx
-        build:
-            context: .
-            dockerfile: docker/nginx/Dockerfile
+        image: nginx
         ports:
             - "${NGINX_PORT}:80"
         volumes:
@@ -28,9 +26,7 @@ services:
 
     mysql:
         container_name: content-hub_mysql
-        build:
-            context: .
-            dockerfile: docker/mysql/Dockerfile
+        image: mysql:8.0
         ports:
             - "${DB_PORT}:3306"
         restart: unless-stopped
@@ -47,7 +43,7 @@ services:
             test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent" ]
             interval: 5s
             timeout: 3s
-            retries: 10
+            retries: 50
 
     node-vite:
         container_name: content-hub_node-vite

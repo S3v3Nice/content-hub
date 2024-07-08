@@ -47,7 +47,7 @@ services:
 
     node-vite:
         container_name: content-hub_node-vite
-        image: node:20.4-alpine
+        image: node:22-alpine
         ports:
             - "${VITE_PORT}:5173"
         restart: unless-stopped
